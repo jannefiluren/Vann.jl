@@ -1,4 +1,6 @@
 using Vann
+using Base.Test
+
 
 ################################################################################
 
@@ -30,6 +32,8 @@ q_sim = run_model(st_hydro, prec, epot);
 # Compute largest error
 
 err_max = maximum(map(abs, q_sim - q_obs));
+
+@test err_max < 1.
 
 println("Gr4j maximum error = " * string(err_max))
 
