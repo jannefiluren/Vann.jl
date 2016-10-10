@@ -35,6 +35,32 @@ function load_data(folder, file_q_obs = "Q_obs.txt", file_tair = "Tair.txt",
 
 end
 
+# Crop data from start to stop date
+
+function crop_data(date, tair, prec, q_obs, date_start, date_stop)
+
+  # Find indicies
+
+  istart = find(date .== date_start);
+  istop = find(date .== date_stop);
+
+  # Test if ranges are valid
+
+  if isempty(istart) | isempty(istop)
+    error("Cropping data outside range")
+  end
+
+  # Crop data
+
+  date  = date[istart[1]:istop[1]];
+  tair  = tair[:, istart[1]:istop[1]];
+  prec  = prec[:, istart[1]:istop[1]];
+  q_obs = q_obs[istart[1]:istop[1]];
+
+  return date, tair, prec, q_obs
+
+end
+
 # Assign input data to snow model
 
 function get_input(st_snow::TinStandardType, prec, tair, date, itime)
