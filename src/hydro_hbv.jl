@@ -127,17 +127,17 @@ function hydro_model(States::HbvType)
   hbv_ord = States.hbv_ord;
   epot = States.epot;
   infilt = States.infilt;
-  param = States.param;
+  #param = States.param;
 
-  fc     = param[1];
-  lp     = param[2];
-  k0     = param[3];
-  k1     = param[4];
-  k2     = param[5];
-  beta   = param[6];
-  perc   = param[7];
-  ulz    = param[8];
-  maxbas = param[9];
+  fc     = States.param[1];
+  lp     = States.param[2];
+  k0     = States.param[3];
+  k1     = States.param[4];
+  k2     = States.param[5];
+  beta   = States.param[6];
+  perc   = States.param[7];
+  ulz    = States.param[8];
+  maxbas = States.param[9];
 
   # Input for current time step
 
@@ -206,13 +206,13 @@ function hydro_model(States::HbvType)
 
   # Compute runoff from upper groundwater box and update storage
 
-  q_suz = k1 * suz + k0 * max(suz-ulz, 0);
+  q_suz = k1 * suz + k0 * max(suz-ulz, 0.);
 
   suz = suz - q_suz;
 
   if suz < 0.
     q_suz = max(q_suz + suz, 0.);
-    suz = 0.
+    suz = 0.;
   end
 
   # Add precolation to lower groundwater box
