@@ -23,11 +23,11 @@ param  = [257.238, 1.012, 88.235, 2.208];
 
 # Select model
 
-st_hydro = Gr4jType(param, frac);
+st_gr4j = Gr4jType(param, frac);
 
 # Run model
 
-q_sim = run_model(st_hydro, prec, epot);
+q_sim = run_model(st_gr4j, prec, epot);
 
 # Compute largest error
 
