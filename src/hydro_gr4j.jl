@@ -1,8 +1,9 @@
 
 # Type definitions
 
-type Gr4jType <: HydroType
-
+# type Gr4jType <: HydroType
+type Gr4jType
+  
   st::Array{Float64,1}
   st_uh1::Array{Float64,1}
   st_uh2::Array{Float64,1}

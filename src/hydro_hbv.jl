@@ -2,7 +2,8 @@
 
 # Type definitions
 
-type HbvType <: HydroType
+#type HbvType <: HydroType
+type HbvType
 
   sm::Float64
   suz::Float64
@@ -103,9 +104,9 @@ end
 
 function compute_hbv_ord(maxbas)
 
-  triang = TriangularDist(0, maxbas);
+  triang = Distributions.TriangularDist(0, maxbas);
 
-  triang_cdf = cdf(triang, 0:20);
+  triang_cdf = Distributions.cdf(triang, 0:20);
 
   hbv_ord = diff(triang_cdf);
 
@@ -127,14 +128,13 @@ function hydro_model(States::HbvType)
   hbv_ord = States.hbv_ord;
   epot = States.epot;
   infilt = States.infilt;
-  #param = States.param;
 
   fc     = States.param[1];
   lp     = States.param[2];
   k0     = States.param[3];
   k1     = States.param[4];
   k2     = States.param[5];
-  beta   = States.param[6];
+  beta_hbv   = States.param[6];
   perc   = States.param[7];
   ulz    = States.param[8];
   maxbas = States.param[9];
@@ -150,7 +150,7 @@ function hydro_model(States::HbvType)
 
     # Beta function
 
-    f_recharge = (sm / fc) ^ beta;
+    f_recharge = (sm / fc) ^ beta_hbv;
 
     # Groundwater recharge
 
