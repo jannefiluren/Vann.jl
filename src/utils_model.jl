@@ -1,6 +1,6 @@
 # Model wrapper for Gr4j
 
-function run_model(st_hydro, prec, epot)
+function run_model(st_hydro::HydroType, prec, epot)
 
   # Number of time steps
 
