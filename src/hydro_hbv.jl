@@ -1,14 +1,14 @@
 
 
-
 # Type definitions
 
 type HbvType <: HydroType
 
-  sm::Array{Float64,1}
-  suz::Array{Float64,1}
-  slz::Array{Float64,1}
+  sm::Float64
+  suz::Float64
+  slz::Float64
   st_uh::Array{Float64,1}
+  hbv_ord::Array{Float64,1}
   epot::Float64
   infilt::Float64
   param::Array{Float64,1}
@@ -19,47 +19,130 @@ end
 
 # Outer constructors
 
-function Gr4jType(frac)
+function HbvType(frac)
 
   nzones  = length(frac);
 
-  st      = zeros(Float64, 2);
-  st_uh1  = zeros(Float64, 20);
-  st_uh2  = zeros(Float64, 40);
-  ord_uh1 = zeros(Float64, 20);
-  ord_uh2 = zeros(Float64, 40);
+  sm      = 0.;
+  suz     = 0.;
+  slz     = 0.;
+  st_uh   = zeros(Float64, 20);
 
   epot   = 0.0;
   infilt = 0.0;
-  param  = [257.238, 1.012, 88.235, 2.208];
 
-  st[1] = 0.3 * param[1];
-  st[2] = 0.5 * param[3];
+  # fc, lp, k0, k1, k2, beta, perc, ulz, maxbas
 
-  UH1(ord_uh1, param[4], 2.5);
-  UH2(ord_uh2, param[4], 2.5);
+  param = [100., 0.8, 0.05, 0.05, 0.01, 1., 2., 30., 2.5];
 
-  Gr4jType(st, st_uh1, st_uh2, ord_uh1, ord_uh2, epot, infilt, param, frac);
+  hbv_ord = compute_hbv_ord(param[9]);
+
+  HbvType(sm, suz, slz, st_uh, hbv_ord, epot, infilt, param, frac);
+
+end
+
+function HbvType(param, frac)
+
+  nzones  = length(frac);
+
+  sm      = 0.;
+  suz     = 0.;
+  slz     = 0.;
+  st_uh   = zeros(Float64, 20);
+
+  epot   = 0.0;
+  infilt = 0.0;
+
+  hbv_ord = compute_hbv_ord(param[9]);
+
+  HbvType(sm, suz, slz, st_uh, hbv_ord, epot, infilt, param, frac);
 
 end
 
 
+# Parameter ranges for calibration
+
+function get_param_range(States::HbvType)
+
+  param_range_hydro = [(1., 1000.), (0.5, 0.99), (0.001, 0.999),
+                       (0.001, 0.999), (0.001, 0.999), (1., 5.),
+                       (0.1, 1000.), (1., 1000.), (1., 20.)];
+
+end
 
 
+# Initilize state variables
+
+function init_states(States::HbvType)
+
+  States.sm      = 0.;
+  States.suz     = 0.;
+  States.slz     = 0.;
+
+  for i in eachindex(States.st_uh)
+    States.st_uh[i] = 0.;
+  end
+
+end
 
 
+# Assign parameter values
+
+function assign_param(States::HbvType, param::Array{Float64,1})
+
+  for i in eachindex(States.param)
+    States.param[i] = param[i];
+  end
+
+  States.hbv_ord = compute_hbv_ord(param[9]);
+
+end
 
 
+# Function for computing ordinates of unit hydrograph
+
+function compute_hbv_ord(maxbas)
+
+  triang = TriangularDist(0, maxbas);
+
+  triang_cdf = cdf(triang, 0:20);
+
+  hbv_ord = diff(triang_cdf);
+
+  return(hbv_ord);
+
+end
 
 
-# Loop over time
+# Function for HBV model
 
-for i in eachindex(prec)
+function hydro_model(States::HbvType)
+
+  # States and parameters
+
+  sm = States.sm;
+  suz = States.suz;
+  slz = States.slz;
+  st_uh = States.st_uh;
+  hbv_ord = States.hbv_ord;
+  epot = States.epot;
+  infilt = States.infilt;
+  param = States.param;
+
+  fc     = param[1];
+  lp     = param[2];
+  k0     = param[3];
+  k1     = param[4];
+  k2     = param[5];
+  beta   = param[6];
+  perc   = param[7];
+  ulz    = param[8];
+  maxbas = param[9];
 
   # Input for current time step
 
-  prec_now = prec[i]
-  epot_now = epot[i]
+  prec_now = infilt;
+  epot_now = epot;
 
   # Soil moisture zone (assume no evaporation during rainfall)
 
@@ -158,11 +241,15 @@ for i in eachindex(prec)
 
   q_tot = st_uh[1];
 
-  # Store results
+  # Assign states
 
-  q_out[i]   = q_tot;
-  sm_out[i]  = sm;
-  suz_out[i] = suz;
-  slz_out[i] = slz;
+  States.sm = sm;
+  States.suz = suz;
+  States.slz = slz;
+  States.st_uh = st_uh;
+
+  # Return discharge
+
+  return(q_tot);
 
 end
