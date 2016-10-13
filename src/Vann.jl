@@ -1,6 +1,6 @@
 module Vann
 
-#using BlackBoxOptim
+using BlackBoxOptim
 using Distributions
 
 # abstract HydroType
