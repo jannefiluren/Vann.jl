@@ -93,7 +93,7 @@ end
 
 # Assign input data to hydrological model
 
-function get_input(st_hydro::Gr4jType, prec, epot, itime)
+function get_input(st_hydro::HydroType, prec, epot, itime)
 
   st_hydro.infilt = prec[itime];
   st_hydro.epot   = epot[itime];
