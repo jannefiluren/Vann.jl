@@ -1,11 +1,12 @@
 module Vann
 
 using BlackBoxOptim
+using Distributions
 
 abstract HydroType
 abstract SnowType
 
-export Gr4jType
+export Gr4jType, HbvType
 export TinBasicType, TinStandardType
 
 export hydro_model, snow_model
@@ -16,6 +17,7 @@ export run_model_calib, calib_wrapper
 export run_model
 
 include("hydro_gr4j.jl")
+include("hydro_hbv.jl")
 include("snow_tinbasic.jl")
 include("snow_tinstandard.jl")
 include("utils_pfilter.jl")
