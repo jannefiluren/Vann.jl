@@ -2,8 +2,7 @@
 
 # Type definitions
 
-#type HbvType <: HydroType
-type HbvType
+type HbvType <: HydroType
 
   sm::Float64
   suz::Float64
