@@ -3,7 +3,7 @@
 
 # Run model and compute performance measure
 
-function calib_wrapper(param, st_snow, st_hydro, date, tair, prec, q_obs)
+function calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tair, prec, q_obs)
 
   # Assign parameter values
 
@@ -47,14 +47,36 @@ end
 
 function run_model_calib(st_snow::SnowType, st_hydro::HydroType, date, tair, prec, q_obs)
 
+  # Get parameter range
+
   param_range_snow  = get_param_range(st_snow);
   param_range_hydro = get_param_range(st_hydro);
 
   param_range = vcat(param_range_snow, param_range_hydro);
 
-  calib_wrapper_tmp(param) = calib_wrapper(param, st_snow, st_hydro, date, tair, prec, q_obs);
+  # Lower and upper bounds for parameters
 
-  res = bboptimize(calib_wrapper_tmp; SearchRange = param_range);
+  param_lower = [param_range[i][1] for i in eachindex(param_range)];
+  param_upper = [param_range[i][2] for i in eachindex(param_range)];
+
+  # Starting point
+
+  param_start = (param_lower + param_upper) / 2;
+
+  # Wrapper function
+
+  calib_wrapper_tmp(param::Vector, grad::Vector) = calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tair, prec, q_obs);
+
+  # Optimization
+
+  opt = Opt(:LN_NELDERMEAD, length(param_start));
+
+  min_objective!(opt, calib_wrapper_tmp);
+
+  lower_bounds!(opt, param_lower);
+  upper_bounds!(opt, param_upper);
+
+  (minf,minx,ret) = optimize(opt, param_start);
 
 end
 
@@ -107,3 +129,124 @@ function run_model_calib(st_hydro::HydroType, prec, epot, q_obs)
   res = bboptimize(calib_wrapper_tmp; SearchRange = param_range);
 
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ### Snow and hydrological model
+#
+# # Run model and compute performance measure
+#
+# function calib_wrapper(param, st_snow, st_hydro, date, tair, prec, q_obs)
+#
+#   # Assign parameter values
+#
+#   assign_param(st_snow, param[1:length(st_snow.param)]);
+#   assign_param(st_hydro, param[length(st_snow.param)+1:end]);
+#
+#   # Initilize model states
+#
+#   init_states(st_snow);
+#   init_states(st_hydro);
+#
+#   # Run model
+#
+#   ntimes = size(prec, 2);
+#
+#   q_sim = zeros(Float64, ntimes);
+#
+#   for itime in 1:ntimes
+#
+#     get_input(st_snow, prec, tair, date, itime);
+#
+#     snow_model(st_snow);
+#
+#     get_input(st_snow, st_hydro);
+#
+#     q_sim[itime] = hydro_model(st_hydro);
+#
+#   end
+#
+#   ikeep = q_obs .!= -999.;
+#
+#   q_sim = q_sim[ikeep];
+#   q_obs = q_obs[ikeep];
+#
+#   return(sum((q_sim - q_obs).^2));
+#
+# end
+#
+#
+# # Run calibration
+#
+# function run_model_calib(st_snow::SnowType, st_hydro::HydroType, date, tair, prec, q_obs)
+#
+#   param_range_snow  = get_param_range(st_snow);
+#   param_range_hydro = get_param_range(st_hydro);
+#
+#   param_range = vcat(param_range_snow, param_range_hydro);
+#
+#   calib_wrapper_tmp(param) = calib_wrapper(param, st_snow, st_hydro, date, tair, prec, q_obs);
+#
+#   res = bboptimize(calib_wrapper_tmp; SearchRange = param_range);
+#
+# end
+#
+#
+# ### Hydrological model
+#
+# # Run model and compute performance measure
+#
+# function calib_wrapper(param, st_hydro, prec, epot, q_obs)
+#
+#   # Assign parameter values
+#
+#   assign_param(st_hydro, param);
+#
+#   # Initilize model states
+#
+#   init_states(st_hydro);
+#
+#   # Run model
+#
+#   ntimes = size(prec, 2);
+#
+#   q_sim = zeros(Float64, ntimes);
+#
+#   for itime in 1:ntimes
+#
+#     get_input(st_hydro, prec, epot, itime);
+#
+#     q_sim[itime] = hydro_model(st_hydro);
+#
+#   end
+#
+#   ikeep = q_obs .!= -999.;
+#
+#   q_sim = q_sim[ikeep];
+#   q_obs = q_obs[ikeep];
+#
+#   return(sum((q_sim - q_obs).^2));
+#
+# end
+#
+# # Run calibration
+#
+# function run_model_calib(st_hydro::HydroType, prec, epot, q_obs)
+#
+#   param_range = get_param_range(st_hydro);
+#
+#   calib_wrapper_tmp(param) = calib_wrapper(param, st_hydro, prec, epot, q_obs);
+#
+#   res = bboptimize(calib_wrapper_tmp; SearchRange = param_range);
+#
+# end
