@@ -1,8 +1,8 @@
 
 using Vann
-#using RCall
+using RCall
 using DataFrames
-import BlackBoxOptim: best_candidate
+
 
 
 ################################################################################
@@ -24,7 +24,7 @@ for dir_curr in dir_all
   # Initilize model
 
   st_snow = TinBasicType(frac);
-  st_hydro = Gr4jType(frac);
+  st_hydro = HbvType(frac);
 
   # Run calibration
 
@@ -32,7 +32,10 @@ for dir_curr in dir_all
 
   # Get optimal parameters
 
-  param_opt = best_candidate(res);
+  param_opt = res[2];
+  # param_opt = best_candidate(res);
+
+  println(param_opt)
 
   # Reinitilize model
 
@@ -56,7 +59,7 @@ for dir_curr in dir_all
 
   # Folder for saving results
 
-  path_save = string("//hdata/fou/jmg/FloodForecasting")
+  path_save = string("C:/Users/jmg/Desktop/outputs/hbv_nlopt")
 
   mkpath(path_save * "/txt")
   mkpath(path_save * "/png")
@@ -69,31 +72,31 @@ for dir_curr in dir_all
 
   # Plot results using rcode
 
-  # R"""
-  # library(zoo, lib.loc='//unixhome/users/jmg/R/x86_64-unknown-linux-gnu-library/3.1')
-  # library(hydroGOF, lib.loc='//unixhome/users/jmg/R/x86_64-unknown-linux-gnu-library/3.1')
-  # library(labeling, lib.loc='//unixhome/users/jmg/R/x86_64-unknown-linux-gnu-library/3.1')
-  # library(ggplot2, lib.loc='//unixhome/users/jmg/R/x86_64-unknown-linux-gnu-library/3.1')
-  # """
-  #
-  # R"""
-  # df <- $df_fig
-  # df$q_obs[df$q_obs == -999] <- NA
-  # kge <- KGE(df$q_sim, df$q_obs)
-  # plot_title <- paste('KGE = ', round(kge, digits = 2), sep = '')
-  # path_save <- $path_save
-  # file_save <- $file_save
-  # """
-  #
-  # R"""
-  # p <- ggplot(df, aes(x))
-  # p <- p + geom_line(aes(y = q_sim),colour = 'red', size = 0.5)
-  # p <- p + geom_line(aes(y = q_obs),colour = 'blue', size = 0.5)
-  # p <- p + theme_bw()
-  # p <- p + labs(title = plot_title)
-  # p <- p + labs(x = 'Index')
-  # p <- p + labs(y = 'Discharge')
-  # ggsave(file = paste(path_save,'/png/',file_save,'_station.png', sep = ''), width = 30, height = 18, units = 'cm', dpi = 600)
-  # """
+  R"""
+  library(zoo, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
+  library(hydroGOF, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
+  library(labeling, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
+  library(ggplot2, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
+  """
+
+  R"""
+  df <- $df_fig
+  df$q_obs[df$q_obs == -999] <- NA
+  kge <- KGE(df$q_sim, df$q_obs)
+  plot_title <- paste('KGE = ', round(kge, digits = 2), sep = '')
+  path_save <- $path_save
+  file_save <- $file_save
+  """
+
+  R"""
+  p <- ggplot(df, aes(x))
+  p <- p + geom_line(aes(y = q_sim),colour = 'red', size = 0.5)
+  p <- p + geom_line(aes(y = q_obs),colour = 'blue', size = 0.5)
+  p <- p + theme_bw()
+  p <- p + labs(title = plot_title)
+  p <- p + labs(x = 'Index')
+  p <- p + labs(y = 'Discharge')
+  ggsave(file = paste(path_save,'/png/',file_save,'_station.png', sep = ''), width = 30, height = 18, units = 'cm', dpi = 600)
+  """
 
 end

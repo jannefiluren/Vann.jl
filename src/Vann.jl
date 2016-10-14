@@ -16,6 +16,8 @@ export load_data, crop_data
 export get_param_range, init_states
 export run_model_calib, calib_wrapper
 export run_model
+export assign_param
+export get_input
 
 include("hydro_hbv.jl")
 include("hydro_gr4j.jl")
