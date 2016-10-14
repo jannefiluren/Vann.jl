@@ -64,9 +64,15 @@ end
 
 function get_param_range(States::HbvType)
 
-  param_range_hydro = [(1., 1000.), (0.5, 0.99), (0.001, 0.999),
-                       (0.001, 0.999), (0.001, 0.999), (1., 5.),
-                       (0.1, 1000.), (1., 1000.), (1., 20.)];
+  param_range_hydro = [(1., 1000.),      # fc
+                       (0.5, 0.99),      # lp
+                       (0.001, 0.999),   # k0
+                       (0.001, 0.999),   # k1
+                       (0.001, 0.999),   # k2
+                       (1., 5.),         # beta
+                       (0.1, 1000.),     # perc
+                       (1., 1000.),      # ulz
+                       (1., 20.)];       # maxbas
 
 end
 
@@ -133,7 +139,7 @@ function hydro_model(States::HbvType)
   k0     = States.param[3];
   k1     = States.param[4];
   k2     = States.param[5];
-  beta_hbv   = States.param[6];
+  beta   = States.param[6];
   perc   = States.param[7];
   ulz    = States.param[8];
   maxbas = States.param[9];
@@ -149,7 +155,7 @@ function hydro_model(States::HbvType)
 
     # Beta function
 
-    f_recharge = (sm / fc) ^ beta_hbv;
+    f_recharge = (sm / fc) ^ beta;
 
     # Groundwater recharge
 
