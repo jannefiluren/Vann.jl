@@ -80,19 +80,33 @@ function run_model_calib(st_snow::SnowType, st_hydro::HydroType, date, tair, pre
 
   (min_func, best_global, ret_nlopt) = optimize(opt_global, param_start);
 
+
+  println("Before adjustment")
+  println(param_lower)
+  println(best_global)
+  println(param_upper)
+
+
   # Check that optimal value is inside bounds
 
   for iparam = 1:length(best_global)
 
-    if best_global[iparam] == param_lower[iparam]
-      best_global[iparam] = param_lower[iparam] + 0.01*(param_upper[iparam] - param_lower[iparam]);
+    if best_global[iparam] < param_lower[iparam] + 0.2*(param_upper[iparam] - param_lower[iparam])
+      best_global[iparam] = param_lower[iparam] + 0.2*(param_upper[iparam] - param_lower[iparam]);
     end
 
-    if best_global[iparam] == param_upper[iparam]
-      best_global[iparam] = param_upper[iparam] - 0.01*(param_upper[iparam] - param_lower[iparam]);;
+    if best_global[iparam] > param_upper[iparam] - 0.2*(param_upper[iparam] - param_lower[iparam]);
+      best_global[iparam] = param_upper[iparam] - 0.2*(param_upper[iparam] - param_lower[iparam]);
     end
 
   end
+
+  println("After adjustment")
+  println(param_lower)
+  println(best_global)
+  println(param_upper)
+
+
 
   # Perform local optimization
 
@@ -187,12 +201,12 @@ function run_model_calib(st_hydro::HydroType, prec, epot, q_obs)
 
   for iparam = 1:length(best_global)
 
-    if best_global[iparam] == param_lower[iparam]
-      best_global[iparam] = param_lower[iparam] + 0.01*(param_upper[iparam] - param_lower[iparam]);
+    if best_global[iparam] < param_lower[iparam] + 0.2*(param_upper[iparam] - param_lower[iparam])
+      best_global[iparam] = param_lower[iparam] + 0.2*(param_upper[iparam] - param_lower[iparam]);
     end
 
-    if best_global[iparam] == param_upper[iparam]
-      best_global[iparam] = param_upper[iparam] - 0.01*(param_upper[iparam] - param_lower[iparam]);;
+    if best_global[iparam] > param_upper[iparam] - 0.2*(param_upper[iparam] - param_lower[iparam]);
+      best_global[iparam] = param_upper[iparam] - 0.2*(param_upper[iparam] - param_lower[iparam]);
     end
 
   end
