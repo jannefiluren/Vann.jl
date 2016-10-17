@@ -2,6 +2,7 @@
 using Vann
 using RCall
 using DataFrames
+using NLopt
 
 
 
@@ -28,12 +29,7 @@ for dir_curr in dir_all
 
   # Run calibration
 
-  res = run_model_calib(st_snow, st_hydro, date, tair, prec, q_obs);
-
-  # Get optimal parameters
-
-  param_opt = res[2];
-  # param_opt = best_candidate(res);
+  param_opt = run_model_calib(st_snow, st_hydro, date, tair, prec, q_obs);
 
   println(param_opt)
 
@@ -43,7 +39,7 @@ for dir_curr in dir_all
   param_hydro = param_opt[length(st_snow.param)+1:end]
 
   st_snow  = TinBasicType(param_snow, frac);
-  st_hydro = Gr4jType(param_hydro, frac);
+  st_hydro = HbvType(param_hydro, frac);
 
   # Run model with best parameter Select
 
@@ -59,7 +55,7 @@ for dir_curr in dir_all
 
   # Folder for saving results
 
-  path_save = string("C:/Users/jmg/Desktop/outputs/hbv_nlopt")
+  path_save = string("C:/Users/jmg/Desktop/outputs/test")
 
   mkpath(path_save * "/txt")
   mkpath(path_save * "/png")

@@ -67,16 +67,47 @@ function run_model_calib(st_snow::SnowType, st_hydro::HydroType, date, tair, pre
 
   calib_wrapper_tmp(param::Vector, grad::Vector) = calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tair, prec, q_obs);
 
-  # Optimization
+  # Perform global optimization
 
-  opt = Opt(:LN_NELDERMEAD, length(param_start));
+  opt_global = Opt(:GN_CRS2_LM, length(param_start));
 
-  min_objective!(opt, calib_wrapper_tmp);
+  min_objective!(opt_global, calib_wrapper_tmp);
 
-  lower_bounds!(opt, param_lower);
-  upper_bounds!(opt, param_upper);
+  maxeval!(opt_global, 5000);
 
-  (minf,minx,ret) = optimize(opt, param_start);
+  lower_bounds!(opt_global, param_lower);
+  upper_bounds!(opt_global, param_upper);
+
+  (min_func, best_global, ret_nlopt) = optimize(opt_global, param_start);
+
+  # Check that optimal value is inside bounds
+
+  for iparam = 1:length(best_global)
+
+    if best_global[iparam] == param_lower[iparam]
+      best_global[iparam] = param_lower[iparam] + 0.01*(param_upper[iparam] - param_lower[iparam]);
+    end
+
+    if best_global[iparam] == param_upper[iparam]
+      best_global[iparam] = param_upper[iparam] - 0.01*(param_upper[iparam] - param_lower[iparam]);;
+    end
+
+  end
+
+  # Perform local optimization
+
+  opt_local = Opt(:LN_NELDERMEAD, length(param_start));
+
+  min_objective!(opt_local, calib_wrapper_tmp);
+
+  lower_bounds!(opt_local, param_lower);
+  upper_bounds!(opt_local, param_upper);
+
+  (min_func, best_local, ret_nlopt) = optimize(opt_local, best_global);
+
+  # Return best parameter values
+
+  return(best_local)
 
 end
 
@@ -85,7 +116,7 @@ end
 
 # Run model and compute performance measure
 
-function calib_wrapper(param, st_hydro, prec, epot, q_obs)
+function calib_wrapper(param::Vector, grad::Vector, st_hydro, prec, epot, q_obs)
 
   # Assign parameter values
 
@@ -122,20 +153,66 @@ end
 
 function run_model_calib(st_hydro::HydroType, prec, epot, q_obs)
 
+  # Get parameter range
+
   param_range = get_param_range(st_hydro);
 
-  calib_wrapper_tmp(param) = calib_wrapper(param, st_hydro, prec, epot, q_obs);
+  # Lower and upper bounds for parameters
 
-  res = bboptimize(calib_wrapper_tmp; SearchRange = param_range);
+  param_lower = [param_range[i][1] for i in eachindex(param_range)];
+  param_upper = [param_range[i][2] for i in eachindex(param_range)];
+
+  # Starting point
+
+  param_start = (param_lower + param_upper) / 2;
+
+  # Wrapper function
+
+  calib_wrapper_tmp(param::Vector, grad::Vector) = calib_wrapper(param::Vector, grad::Vector, st_hydro, prec, epot, q_obs);
+
+  # Perform global optimization
+
+  opt_global = Opt(:GN_CRS2_LM, length(param_start));
+
+  min_objective!(opt_global, calib_wrapper_tmp);
+
+  maxeval!(opt_global, 5000);
+
+  lower_bounds!(opt_global, param_lower);
+  upper_bounds!(opt_global, param_upper);
+
+  (min_func, best_global, ret_nlopt) = optimize(opt_global, param_start);
+
+  # Check that optimal value is inside bounds
+
+  for iparam = 1:length(best_global)
+
+    if best_global[iparam] == param_lower[iparam]
+      best_global[iparam] = param_lower[iparam] + 0.01*(param_upper[iparam] - param_lower[iparam]);
+    end
+
+    if best_global[iparam] == param_upper[iparam]
+      best_global[iparam] = param_upper[iparam] - 0.01*(param_upper[iparam] - param_lower[iparam]);;
+    end
+
+  end
+
+  # Perform local optimization
+
+  opt_local = Opt(:LN_NELDERMEAD, length(param_start));
+
+  min_objective!(opt_local, calib_wrapper_tmp);
+
+  lower_bounds!(opt_local, param_lower);
+  upper_bounds!(opt_local, param_upper);
+
+  (min_func, best_local, ret_nlopt) = optimize(opt_local, best_global);
+
+  # Return best parameter values
+
+  return(best_local)
 
 end
-
-
-
-
-
-
-
 
 
 

@@ -1,6 +1,6 @@
 
 using Vann
-import BlackBoxOptim: best_candidate
+using NLopt
 
 ################################################################################
 
@@ -35,13 +35,11 @@ param  = [257.238, 1.012, 88.235, 2.208];
 
 param_range = get_param_range(st_hydro);
 
-bs = best_candidate(res);
-
 for iparam in eachindex(param)
 
   range_param = param_range[iparam][2] - param_range[iparam][1];
 
-  if !(param[iparam]-0.05*range_param < bs[iparam] < param[iparam]+0.05*range_param)
+  if !(param[iparam]-0.05*range_param < res[iparam] < param[iparam]+0.05*range_param)
     error("Calibration of gr4j resulted in wrong parameter values")
   end
 
@@ -76,13 +74,11 @@ param_range_hydro = get_param_range(st_hydro);
 
 param_range = vcat(param_range_snow, param_range_hydro);
 
-bs = best_candidate(res);
-
 for iparam in eachindex(param)
 
   range_param = param_range[iparam][2] - param_range[iparam][1];
 
-  if !(param[iparam]-0.05*range_param < bs[iparam] < param[iparam]+0.05*range_param)
+  if !(param[iparam]-0.10*range_param < res[iparam] < param[iparam]+0.10*range_param)
     error("Calibration of gr4j resulted in wrong parameter values")
   end
 
