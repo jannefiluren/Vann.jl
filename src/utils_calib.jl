@@ -33,12 +33,7 @@ function calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tai
 
   end
 
-  ikeep = q_obs .!= -999.;
-
-  q_sim = q_sim[ikeep];
-  q_obs = q_obs[ikeep];
-
-  return(sum((q_sim - q_obs).^2));
+  return(kge(q_sim, q_obs));
 
 end
 
@@ -69,9 +64,9 @@ function run_model_calib(st_snow::SnowType, st_hydro::HydroType, date, tair, pre
 
   # Perform global optimization
 
-  opt_global = Opt(:GN_CRS2_LM, length(param_start));
+  opt_global = Opt(:GN_ESCH, length(param_start));
 
-  min_objective!(opt_global, calib_wrapper_tmp);
+  max_objective!(opt_global, calib_wrapper_tmp);
 
   maxeval!(opt_global, 5000);
 
@@ -98,7 +93,7 @@ function run_model_calib(st_snow::SnowType, st_hydro::HydroType, date, tair, pre
 
   opt_local = Opt(:LN_NELDERMEAD, length(param_start));
 
-  min_objective!(opt_local, calib_wrapper_tmp);
+  max_objective!(opt_local, calib_wrapper_tmp);
 
   lower_bounds!(opt_local, param_lower);
   upper_bounds!(opt_local, param_upper);
@@ -140,12 +135,7 @@ function calib_wrapper(param::Vector, grad::Vector, st_hydro, prec, epot, q_obs)
 
   end
 
-  ikeep = q_obs .!= -999.;
-
-  q_sim = q_sim[ikeep];
-  q_obs = q_obs[ikeep];
-
-  return(sum((q_sim - q_obs).^2));
+  return(kge(q_sim, q_obs));
 
 end
 
@@ -172,9 +162,9 @@ function run_model_calib(st_hydro::HydroType, prec, epot, q_obs)
 
   # Perform global optimization
 
-  opt_global = Opt(:GN_CRS2_LM, length(param_start));
+  opt_global = Opt(:GN_ESCH, length(param_start));
 
-  min_objective!(opt_global, calib_wrapper_tmp);
+  max_objective!(opt_global, calib_wrapper_tmp);
 
   maxeval!(opt_global, 5000);
 
@@ -201,7 +191,7 @@ function run_model_calib(st_hydro::HydroType, prec, epot, q_obs)
 
   opt_local = Opt(:LN_NELDERMEAD, length(param_start));
 
-  min_objective!(opt_local, calib_wrapper_tmp);
+  max_objective!(opt_local, calib_wrapper_tmp);
 
   lower_bounds!(opt_local, param_lower);
   upper_bounds!(opt_local, param_upper);
@@ -215,8 +205,24 @@ function run_model_calib(st_hydro::HydroType, prec, epot, q_obs)
 end
 
 
+# Modified Kling-Gupta efficiency
 
+function kge(q_sim, q_obs)
 
+  ikeep = q_obs .!= -999.;
+
+  q_sim = q_sim[ikeep];
+  q_obs = q_obs[ikeep];
+
+  r = cor(q_sim, q_obs);
+
+  beta = mean(q_sim) / mean(q_obs);
+
+  gamma = (std(q_sim) / mean(q_sim)) / (std(q_obs) / mean(q_obs));
+
+  kge = 1 - sqrt( (r-1)^2 + (beta-1)^2 + (gamma-1)^2 );
+
+end
 
 
 # ### Snow and hydrological model
