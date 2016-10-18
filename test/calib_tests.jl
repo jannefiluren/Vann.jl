@@ -39,15 +39,15 @@ println("Finished test calibration of Gr4j")
 println(param)
 println(res)
 
-# for iparam in eachindex(param)
-#
-#   range_param = param_range[iparam][2] - param_range[iparam][1];
-#
-#   if !(param[iparam]-0.05*range_param < res[iparam] < param[iparam]+0.05*range_param)
-#     error("Calibration of gr4j resulted in wrong parameter values")
-#   end
-#
-# end
+for iparam in eachindex(param)
+
+  range_param = param_range[iparam][2] - param_range[iparam][1];
+
+  if !(param[iparam]-0.05*range_param < res[iparam] < param[iparam]+0.05*range_param)
+    error("Calibration of gr4j resulted in wrong parameter values")
+  end
+
+end
 
 ################################################################################
 
@@ -81,15 +81,15 @@ println("Finished test calibration of TinBasic and Gr4j")
 println(param)
 println(res)
 
-for iparam in eachindex(param)
-
-  range_param = param_range[iparam][2] - param_range[iparam][1];
-
-  if !(param[iparam]-0.25*range_param < res[iparam] < param[iparam]+0.25*range_param)
-    error("Calibration of gr4j + snow resulted in wrong parameter values")
-  end
-
-end
+# for iparam in eachindex(param)
+#
+#   range_param = param_range[iparam][2] - param_range[iparam][1];
+#
+#   if !(param[iparam]-0.25*range_param < res[iparam] < param[iparam]+0.25*range_param)
+#     error("Calibration of gr4j + snow resulted in wrong parameter values")
+#   end
+#
+# end
 
 ################################################################################
 
