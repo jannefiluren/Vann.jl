@@ -42,7 +42,7 @@ end
 
 function get_param_range(States::TinBasicType)
 
-  param_range_snow = [(-2.0, 2.0), (1.0, 8.0), (0.5, 2.0)];
+  param_range_snow = [(-0.5, 0.5), (1.0, 8.0), (0.5, 2.0)];
 
 end
 
