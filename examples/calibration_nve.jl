@@ -12,6 +12,12 @@ path_save = "C:/Users/jmg/Desktop/outputs/test"
 snow_choice = TinBasicType;
 hydro_choice = Gr4jType;
 
+calib_start = Date(2000,09,01);
+calib_stop = Date(2014,12,31);
+
+valid_start = Date(1985,09,01);
+valid_stop = Date(2000,08,31);
+
 ################################################################################
 
 # Loop over all watersheds
@@ -28,7 +34,7 @@ for dir_cur in dir_all
 
   # Crop data
 
-  date, tair, prec, q_obs = crop_data(date, tair, prec, q_obs, Date(2000,09,01), Date(2014,12,31));
+  date, tair, prec, q_obs = crop_data(date, tair, prec, q_obs, calib_start, calib_stop);
 
   # Initilize model
 
@@ -109,7 +115,7 @@ for dir_cur in dir_all
 
   # Crop data
 
-  date, tair, prec, q_obs = crop_data(date, tair, prec, q_obs, Date(1990,09,01), Date(2000,08,31));
+  date, tair, prec, q_obs = crop_data(date, tair, prec, q_obs, valid_start, valid_stop);
 
   # Reinitilize model
 
