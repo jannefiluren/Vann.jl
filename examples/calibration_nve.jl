@@ -3,11 +3,12 @@
 using Vann
 using RCall
 using DataFrames
+using JLD
 
 ################################################################################
 
 path_inputs = "//hdata/fou/jmg/FloodForecasting/Data";
-path_save = "C:/Users/jmg/Desktop/outputs/test"
+path_save = "//hdata/fou/jmg/FloodForecasting/Results"
 
 snow_choice = TinBasicType;
 hydro_choice = Gr4jType;
@@ -173,5 +174,23 @@ for dir_cur in dir_all
   p <- p + labs(y = 'Discharge')
   ggsave(file = paste(path_save,'/valid_png/',file_save,'_station.png', sep = ''), width = 30, height = 18, units = 'cm', dpi = 600)
   """
+
+  # Save parameter values
+
+  mkpath(path_save * "/param_snow")
+  mkpath(path_save * "/param_hydro")
+  mkpath(path_save * "/model_data")
+
+  writedlm(path_save * "/param_snow/" * file_save * "_param_snow.txt", param_snow);
+  writedlm(path_save * "/param_hydro/" * file_save * "_param_hydro.txt", param_hydro);
+
+  st_snow = eval(Expr(:call, snow_choice, param_snow, frac));
+  st_hydro = eval(Expr(:call, hydro_choice, param_hydro, frac));
+
+  jldopen(path_save * "/model_data/" * file_save * "_modeldata.jld", "w") do file
+    addrequire(file, Vann)
+    write(file, "st_snow", st_snow)
+    write(file, "st_hydro", st_hydro)
+  end
 
 end

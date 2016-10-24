@@ -3,6 +3,7 @@
 using Vann
 using RCall
 using DataFrames
+using JLD
 
 ################################################################################
 
@@ -165,3 +166,14 @@ p <- p + labs(x = 'Index')
 p <- p + labs(y = 'Discharge')
 ggsave(file = paste(path_save,'/valid_png/',file_save,'_station.png', sep = ''), width = 30, height = 18, units = 'cm', dpi = 600)
 """
+
+# Save model objects
+
+st_snow = eval(Expr(:call, snow_choice, param_snow, frac));
+st_hydro = eval(Expr(:call, hydro_choice, param_hydro, frac));
+
+jldopen(path_save * "/model_data.jld", "w") do file
+  addrequire(file, Vann)
+  write(file, "st_snow", st_snow)
+  write(file, "st_hydro", st_hydro)
+end
