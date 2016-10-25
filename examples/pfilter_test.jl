@@ -5,36 +5,7 @@ using Distributions
 using DataFrames
 using Vann
 
-# Assign input data to snow model
-
-function perturb_input(st_snow::Vann.SnowType, prec, tair, itime)
-
-  n = Uniform(0.5, 1.5);
-  prec_noise = rand(n, 1);
-
-  n = Normal(0.0, 2);
-  tair_noise = rand(n, 1);
-
-  # Assign inputs to snow model
-
-  for izone in eachindex(st_snow.prec)
-
-    st_snow.prec[izone] = prec[izone, itime] * prec_noise[1];
-    st_snow.tair[izone] = tair[izone, itime] + tair_noise[1];
-
-  end
-
-end
-
-# Assign input data to hydrological model
-
-function get_input(st_snow::Vann.SnowType, st_hydro::Vann.HydroType)
-
-  st_hydro.infilt = st_snow.infilt;
-
-end
-
-# Model wrapper
+# Particle filter
 
 function run_filter(prec, tair, q_obs, param_snow, param_hydro, frac, npart)
 
@@ -126,8 +97,6 @@ param_hydro = [74.59, 0.81, 214.98, 1.24];
 npart = 3000;
 
 q_sim = run_filter(prec, tair, q_obs, param_snow, param_hydro, frac, npart);
-
-# @time run_filter(prec, tair, q_ref, param_snow, param_hydro, frac, npart);
 
 # Plot results
 
