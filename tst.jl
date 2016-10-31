@@ -9,7 +9,7 @@ date, tair, prec, q_obs, frac = Vann.load_data("data_atnasjo");
 # Parameters
 
 param_snow  = [0.0, 3.69, 1.02];
-param_hydro = [100., 0.8, 0.05, 0.05, 0.01, 1., 2., 30., 2.5];
+param_hydro = [100., 0.8, 0.15, 0.05, 0.01, 1., 2., 30., 2.5];
 
 # Select model
 
