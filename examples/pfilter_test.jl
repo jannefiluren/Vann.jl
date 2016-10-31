@@ -31,8 +31,8 @@ function run_filter(prec, tair, q_obs, param_snow, param_hydro, frac, npart)
 
   # Run model
 
-  q_tmp = zeros(Float64, npart);
-  q_sim = zeros(Float64, npart, ntimes);
+  q_sim = zeros(Float64, npart);
+  q_res = zeros(Float64, ntimes, 3);
 
   for itime = 1:ntimes
 
@@ -44,48 +44,60 @@ function run_filter(prec, tair, q_obs, param_snow, param_hydro, frac, npart)
 
       get_input(st_snow[ipart], st_hydro[ipart]);
 
-      q_sim[ipart, itime] = Vann.hydro_model(st_hydro[ipart]);
+      q_sim[ipart] = Vann.hydro_model(st_hydro[ipart]);
 
     end
 
     # Run particle filter
 
-    for ipart = 1:npart
+    if true
 
-      wk[ipart] = pdf( Normal(q_obs[itime], max(0.5*q_obs[itime],0.5) ), q_tmp[ipart] ) * wk[ipart];
+      for ipart = 1:npart
+
+        wk[ipart] = pdf(Normal(q_obs[itime], max(0.1 * q_obs[itime], 0.1)), q_sim[ipart]) * wk[ipart];
+
+      end
+
+      if sum(wk) > 0.0
+        wk = wk / sum(wk);
+      else
+        wk = ones(npart) / npart;
+      end
+
+      # Perform resampling
+
+      Neff = 1 / sum(wk.^2);
+
+      if round(Int64, Neff) < round(Int64, npart * 0.5)
+
+        println("Resampled at step: $itime")
+
+        indx = Vann.resample(wk);
+
+        st_snow  = [deepcopy(st_snow[i]) for i in indx];
+        st_hydro = [deepcopy(st_hydro[i]) for i in indx];
+
+        wk = ones(npart) / npart;
+
+      end
 
     end
 
-    if sum(wk) > 0.0
-      wk = wk / sum(wk);
-    else
-      wk = ones(npart) / npart;
-    end
+    # Store results
 
-    Neff = 1 / sum(wk.^2);
-
-    if round(Int64, Neff) < round(Int64, npart * 0.5)
-
-      println("Resampled at step: $itime")
-
-      indx = Vann.resample(wk);
-
-      st_snow  = [deepcopy(st_snow[i]) for i in indx];
-      st_hydro = [deepcopy(st_hydro[i]) for i in indx];
-
-      wk = ones(npart) / npart;
-
-    end
+    q_res[itime, 1] = sum(wk .* q_sim);
+    q_res[itime, 2] = minimum(q_sim);
+    q_res[itime, 3] = maximum(q_sim);
 
   end
 
-  return(q_sim);
+  return(q_res);
 
 end
 
 # Read data
 
-date, tair, prec, q_obs, frac = load_data("../data_atnasjo", "Q_ref.txt");
+date, tair, prec, q_obs, frac = load_data("../data_atnasjo");
 
 # Parameters
 
@@ -96,18 +108,18 @@ param_hydro = [74.59, 0.81, 214.98, 1.24];
 
 npart = 3000;
 
-q_sim = run_filter(prec, tair, q_obs, param_snow, param_hydro, frac, npart);
+q_res = run_filter(prec, tair, q_obs, param_snow, param_hydro, frac, npart);
 
 # Plot results
 
 if true
 
-  x_data = collect(1:size(q_sim,2));
-  q_mean = q_obs; #vec(mean(q_sim,1));
-  q_min  = vec(minimum(q_sim,1));
-  q_max  = vec(maximum(q_sim,1));
+  x_data = collect(1:size(q_res,1));
+  q_mean = q_res[:, 1];
+  q_min  = q_res[:, 2];
+  q_max  = q_res[:, 3];
 
-  df_fs = DataFrame(x = x_data, q_mean = q_mean, q_min = q_min, q_max = q_max);
+  df_fs = DataFrame(x = x_data, q_obs = q_obs, q_mean = q_mean, q_min = q_min, q_max = q_max);
 
   R"""
   library(labeling, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
@@ -119,7 +131,9 @@ if true
   R"""
   ggplot($df_fs, aes(x)) +
   geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "blue") +
-  geom_line(aes(y = q_mean),linetype="dashed") + theme_bw()
+  geom_line(aes(y = q_obs), colour = "black", size = 1) +
+  geom_line(aes(y = q_mean), colour = "red", size = 0.5) +
+  theme_bw()
   ggplotly()
   """
 
