@@ -68,7 +68,7 @@ end
 
 function get_param_range(States::Gr4jType)
 
-  param_range_hydro = [(10.0, 1000.0), (0.0, 100.0), (10.0, 1000.0), (0.5, 10.0)];
+  param_range_hydro = [(1.0, 1000.0), (-10.0, 10.0), (1.0, 500.0), (0.5, 10.0)];
 
 end
 
