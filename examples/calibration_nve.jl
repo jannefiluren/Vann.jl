@@ -91,8 +91,12 @@ for dir_cur in dir_all
   R"""
   df <- $df_fig
   df$q_obs[df$q_obs == -999] <- NA
-  kge <- KGE(df$q_sim, df$q_obs)
-  plot_title <- paste('KGE = ', round(kge, digits = 2), sep = '')
+  kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
+  nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
+  """
+
+  R"""
+  plot_title <- paste('KGE = ', kge, ' NSE = ', nse, sep = '')
   path_save <- $path_save
   file_save <- $file_save
   """
