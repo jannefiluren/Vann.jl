@@ -7,8 +7,15 @@ using JLD
 
 ################################################################################
 
-path_inputs = "//hdata/fou/jmg/FloodForecasting/Data";
-path_save = "//hdata/fou/jmg/FloodForecasting/Results"
+if is_linux()
+  path_inputs = "//hdata/fou/jmg/FloodForecasting/Data";
+  path_save = "//hdata/fou/jmg/FloodForecasting/Results";
+end
+
+if is_windows()
+  path_inputs = "C:/Users/jmg/Dropbox/Work/VannData/Input";
+  path_save = "C:/Users/jmg/Dropbox/Work/VannData";
+end
 
 snow_choice = TinBasicType;
 hydro_choice = Gr4jType;
@@ -20,6 +27,20 @@ valid_start = Date(1985,09,01);
 valid_stop = Date(2000,08,31);
 
 ################################################################################
+
+# Folder for saving results
+
+time_now = Dates.format(now(), "yyyymmddHHMM");
+
+path_save = path_save * "/" * time_now * "_Results";
+
+mkpath(path_save * "/calib_txt")
+mkpath(path_save * "/calib_png")
+mkpath(path_save * "/valid_txt")
+mkpath(path_save * "/valid_png")
+mkpath(path_save * "/param_snow")
+mkpath(path_save * "/param_hydro")
+mkpath(path_save * "/model_data")
 
 # Loop over all watersheds
 
@@ -67,11 +88,6 @@ for dir_cur in dir_all
 
   df_txt = DataFrame(date = date, q_sim = q_sim);
   df_fig = DataFrame(x = collect(1:length(date)), q_sim = q_sim, q_obs = q_obs);
-
-  # Folder for saving results
-
-  mkpath(path_save * "/calib_txt")
-  mkpath(path_save * "/calib_png")
 
   # Save results to txt file
 
@@ -139,11 +155,6 @@ for dir_cur in dir_all
   df_txt = DataFrame(date = date, q_sim = q_sim);
   df_fig = DataFrame(x = collect(1:length(date)), q_sim = q_sim, q_obs = q_obs);
 
-  # Folder for saving results
-
-  mkpath(path_save * "/valid_txt")
-  mkpath(path_save * "/valid_png")
-
   # Save results to txt file
 
   file_save = dir_cur[1:end-5]
@@ -180,10 +191,6 @@ for dir_cur in dir_all
   """
 
   # Save parameter values
-
-  mkpath(path_save * "/param_snow")
-  mkpath(path_save * "/param_hydro")
-  mkpath(path_save * "/model_data")
 
   writedlm(path_save * "/param_snow/" * file_save * "_param_snow.txt", param_snow);
   writedlm(path_save * "/param_hydro/" * file_save * "_param_hydro.txt", param_hydro);
