@@ -58,6 +58,10 @@ for dir_cur in dir_all
 
   date, tair, prec, q_obs = crop_data(date, tair, prec, q_obs, calib_start, calib_stop);
 
+  # Compute potential evapotranspiration
+
+  epot = epot_monthly(date);
+
   # Initilize model
 
   st_snow = eval(Expr(:call, snow_choice, frac));
@@ -65,7 +69,7 @@ for dir_cur in dir_all
 
   # Run calibration
 
-  param_opt = run_model_calib(st_snow, st_hydro, date, tair, prec, q_obs);
+  param_opt = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs);
 
   println(param_opt)
 
@@ -79,7 +83,7 @@ for dir_cur in dir_all
 
   # Run model with best parameter set
 
-  q_sim = run_model(st_snow, st_hydro, date, tair, prec);
+  q_sim = run_model(st_snow, st_hydro, date, tair, prec, epot);
 
   # Store results in data frame
 
@@ -138,6 +142,10 @@ for dir_cur in dir_all
 
   date, tair, prec, q_obs = crop_data(date, tair, prec, q_obs, valid_start, valid_stop);
 
+  # Compute potential evapotranspiration
+
+  epot = epot_monthly(date);
+
   # Reinitilize model
 
   st_snow = eval(Expr(:call, snow_choice, param_snow, frac));
@@ -145,7 +153,7 @@ for dir_cur in dir_all
 
   # Run model with best parameter set
 
-  q_sim = run_model(st_snow, st_hydro, date, tair, prec);
+  q_sim = run_model(st_snow, st_hydro, date, tair, prec, epot);
 
   # Store results in data frame
 

@@ -92,8 +92,6 @@ end
 
 function get_input(st_snow::TinStandardType, prec, tair, date, itime)
 
-  # Assign inputs to snow model
-
   st_snow.date = date[itime];
 
   for izone in eachindex(st_snow.prec)
@@ -107,8 +105,6 @@ end
 
 function get_input(st_snow::TinBasicType, prec, tair, date, itime)
 
-  # Assign inputs to snow model
-
   for izone in eachindex(st_snow.prec)
 
     st_snow.prec[izone] = prec[izone, itime];
@@ -118,7 +114,7 @@ function get_input(st_snow::TinBasicType, prec, tair, date, itime)
 
 end
 
-# Assign input data to hydrological model
+# Assign input data to hydrological response model
 
 function get_input(st_hydro::HydroType, prec, epot, itime)
 
@@ -127,8 +123,9 @@ function get_input(st_hydro::HydroType, prec, epot, itime)
 
 end
 
-function get_input(st_snow::SnowType, st_hydro::HydroType)
+function get_input(st_snow::SnowType, st_hydro::HydroType, epot, itime)
 
   st_hydro.infilt = st_snow.infilt;
+  st_hydro.epot   = epot[itime];
 
 end

@@ -57,6 +57,10 @@ end
 
 date, tair, prec, q_obs, frac = load_data("../data_atnasjo", "Q_ref.txt");
 
+# Compute potential evapotranspiration
+
+epot = epot_zero(date);
+
 # Select model
 
 st_snow = TinBasicType(frac);
@@ -64,7 +68,7 @@ st_hydro = Gr4jType(frac);
 
 # Run calibration
 
-res = run_model_calib(st_snow, st_hydro, date, tair, prec, q_obs);
+res = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs);
 
 # Parameter values
 
@@ -99,6 +103,10 @@ println(res)
 
 date, tair, prec, q_obs, frac = load_data("../data_atnasjo", "Q_ref.txt");
 
+# Compute potential evapotranspiration
+
+epot = epot_zero(date);
+
 # Select model
 
 st_snow = TinStandardType(frac);
@@ -106,7 +114,7 @@ st_hydro = Gr4jType(frac);
 
 # Run calibration
 
-res = run_model_calib(st_snow, st_hydro, date, tair, prec, q_obs);
+res = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs);
 
 println("Finished test calibration of TinStandard and Gr4j")
 println(res)

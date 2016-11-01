@@ -3,7 +3,7 @@
 
 # Run model and compute performance measure
 
-function calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tair, prec, q_obs)
+function calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tair, prec, epot, q_obs)
 
   # Assign parameter values
 
@@ -27,7 +27,7 @@ function calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tai
 
     snow_model(st_snow);
 
-    get_input(st_snow, st_hydro);
+    get_input(st_snow, st_hydro, epot, itime);
 
     q_sim[itime] = hydro_model(st_hydro);
 
@@ -40,7 +40,7 @@ end
 
 # Run calibration
 
-function run_model_calib(st_snow::SnowType, st_hydro::HydroType, date, tair, prec, q_obs)
+function run_model_calib(st_snow::SnowType, st_hydro::HydroType, date, tair, prec, epot, q_obs)
 
   # Get parameter range
 
@@ -60,7 +60,7 @@ function run_model_calib(st_snow::SnowType, st_hydro::HydroType, date, tair, pre
 
   # Wrapper function
 
-  calib_wrapper_tmp(param::Vector, grad::Vector) = calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tair, prec, q_obs);
+  calib_wrapper_tmp(param::Vector, grad::Vector) = calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tair, prec, epot, q_obs);
 
   # Perform global optimization
 

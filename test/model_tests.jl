@@ -46,6 +46,10 @@ println("Gr4j maximum error = " * string(err_max))
 
 date, tair, prec, q_obs, frac = load_data("../data_atnasjo", "Q_ref.txt");
 
+# Compute potential evapotranspiration
+
+epot = epot_zero(date);
+
 # Parameters
 
 param_snow  = [0.0, 3.69, 1.02];
@@ -56,7 +60,7 @@ param_hydro = [74.59, 0.81, 214.98, 1.24];
 st_snow  = TinBasicType(param_snow, frac);
 st_hydro = Gr4jType(param_hydro, frac);
 
-q_sim = run_model(st_snow, st_hydro, date, tair, prec);
+q_sim = run_model(st_snow, st_hydro, date, tair, prec, epot);
 
 # Compute largest error
 
@@ -73,6 +77,10 @@ println("Gr4j + TinBasic maximum error = " * string(err_max))
 
 date, tair, prec, q_obs, frac = load_data("../data_atnasjo", "Q_ref.txt");
 
+# Compute potential evapotranspiration
+
+epot = epot_zero(date);
+
 # Parameters
 
 param_snow  = [0.0, 3.69, 3.69, 0., 1.02];
@@ -83,7 +91,7 @@ param_hydro = [74.59, 0.81, 214.98, 1.24];
 st_snow  = TinStandardType(param_snow, frac);
 st_hydro = Gr4jType(param_hydro, frac);
 
-q_sim = run_model(st_snow, st_hydro, date, tair, prec);
+q_sim = run_model(st_snow, st_hydro, date, tair, prec, epot);
 
 # Compute largest error
 
