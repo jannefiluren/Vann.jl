@@ -18,7 +18,7 @@ if is_windows()
 end
 
 snow_choice = TinBasicType;
-hydro_choice = Gr4jType;
+hydro_choice = HbvType;
 
 calib_start = Date(2000,09,01);
 calib_stop = Date(2014,12,31);
