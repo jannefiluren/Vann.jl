@@ -33,7 +33,7 @@ function calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tai
 
   end
 
-  return(kge(q_sim, q_obs));
+  return(nse(q_sim, q_obs));
 
 end
 
@@ -223,6 +223,21 @@ function kge(q_sim, q_obs)
   kge = 1 - sqrt( (r-1)^2 + (beta-1)^2 + (gamma-1)^2 );
 
 end
+
+
+# Nash-Sutcliffe efficiency
+
+function nse(q_sim, q_obs)
+
+  ikeep = q_obs .!= -999.;
+
+  q_sim = q_sim[ikeep];
+  q_obs = q_obs[ikeep];
+
+  ns = 1 - sum((q_sim - q_obs).^2) / sum((q_obs - mean(q_obs)).^2);
+
+end
+
 
 
 # ### Snow and hydrological model
