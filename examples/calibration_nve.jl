@@ -60,7 +60,7 @@ for dir_cur in dir_all
 
   # Compute potential evapotranspiration
 
-  epot = epot_monthly(date);
+  epot = epot_zero(date);
 
   # Initilize model
 
@@ -144,7 +144,7 @@ for dir_cur in dir_all
 
   # Compute potential evapotranspiration
 
-  epot = epot_monthly(date);
+  epot = epot_zero(date);
 
   # Reinitilize model
 
