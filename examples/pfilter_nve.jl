@@ -170,7 +170,7 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
     q_min = round(q_min, 2);
     q_max = round(q_max, 2);
 
-    df_res = DataFrame(x = x_data, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
+    df_res = DataFrame(x = x_data, date = date, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
 
     # Save results to txt file
 
@@ -179,6 +179,8 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
     writetable(string(path_save, "/" * period * "_txt/", file_save, "_station.txt"), df_res, quotemark = '"', separator = '\t');
 
     # Plot results
+
+    df_res = DataFrame(x = x_data, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
 
     R"""
     library(zoo, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")

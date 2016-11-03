@@ -57,7 +57,7 @@ q_sim = run_model(st_snow, st_hydro, date, tair, prec);
 q_obs = round(q_obs, 2);
 q_sim = round(q_sim, 2);
 
-df_res = DataFrame(x = collect(1:length(date)), q_sim = q_sim, q_obs = q_obs);
+df_res = DataFrame(x = collect(1:length(date)), date = date, q_sim = q_sim, q_obs = q_obs);
 
 # Folder for saving results
 
@@ -123,7 +123,7 @@ q_sim = run_model(st_snow, st_hydro, date, tair, prec);
 q_obs = round(q_obs, 2);
 q_sim = round(q_sim, 2);
 
-df_res = DataFrame(x = collect(1:length(date)), q_sim = q_sim, q_obs = q_obs);
+df_res = DataFrame(x = collect(1:length(date)), date = date, q_sim = q_sim, q_obs = q_obs);
 
 # Folder for saving results
 
