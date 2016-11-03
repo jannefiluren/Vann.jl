@@ -20,7 +20,7 @@ function TinBasicType(frac)
   tair   = zeros(Float64, nzones);
   swe    = zeros(Float64, nzones);
   infilt = 0.0;
-  param  = zeros(Float64, 3);
+  param  = [0.0, 3.0, 1.0];
 
   TinBasicType(swe, prec, tair, infilt, param, frac);
 
