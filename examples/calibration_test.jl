@@ -57,8 +57,7 @@ q_sim = run_model(st_snow, st_hydro, date, tair, prec);
 q_obs = round(q_obs, 2);
 q_sim = round(q_sim, 2);
 
-df_txt = DataFrame(date = date, q_sim = q_sim);
-df_fig = DataFrame(x = collect(1:length(date)), q_sim = q_sim, q_obs = q_obs);
+df_res = DataFrame(x = collect(1:length(date)), q_sim = q_sim, q_obs = q_obs);
 
 # Folder for saving results
 
@@ -69,7 +68,7 @@ mkpath(path_save * "/calib_png")
 
 file_save = "results";
 
-writetable(string(path_save, "/calib_txt/", file_save, "_station.txt"), df_txt, quotemark = '"', separator = '\t')
+writetable(string(path_save, "/calib_txt/", file_save, "_station.txt"), df_res, quotemark = '"', separator = '\t')
 
 # Plot results using rcode
 
@@ -81,7 +80,7 @@ library(ggplot2, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
 """
 
 R"""
-df <- $df_fig
+df <- $df_res
 df$q_obs[df$q_obs == -999] <- NA
 kge <- KGE(df$q_sim, df$q_obs)
 plot_title <- paste('KGE = ', round(kge, digits = 2), sep = '')
@@ -124,8 +123,7 @@ q_sim = run_model(st_snow, st_hydro, date, tair, prec);
 q_obs = round(q_obs, 2);
 q_sim = round(q_sim, 2);
 
-df_txt = DataFrame(date = date, q_sim = q_sim);
-df_fig = DataFrame(x = collect(1:length(date)), q_sim = q_sim, q_obs = q_obs);
+df_res = DataFrame(x = collect(1:length(date)), q_sim = q_sim, q_obs = q_obs);
 
 # Folder for saving results
 
@@ -136,7 +134,7 @@ mkpath(path_save * "/valid_png")
 
 file_save = "results";
 
-writetable(string(path_save, "/valid_txt/", file_save, "_station.txt"), df_txt, quotemark = '"', separator = '\t')
+writetable(string(path_save, "/valid_txt/", file_save, "_station.txt"), df_res, quotemark = '"', separator = '\t')
 
 # Plot results using rcode
 
@@ -148,7 +146,7 @@ library(ggplot2, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
 """
 
 R"""
-df <- $df_fig
+df <- $df_res
 df$q_obs[df$q_obs == -999] <- NA
 kge <- KGE(df$q_sim, df$q_obs)
 plot_title <- paste('KGE = ', round(kge, digits = 2), sep = '')

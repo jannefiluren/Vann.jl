@@ -90,14 +90,13 @@ for dir_cur in dir_all
   q_obs = round(q_obs, 2);
   q_sim = round(q_sim, 2);
 
-  df_txt = DataFrame(date = date, q_sim = q_sim);
-  df_fig = DataFrame(x = collect(1:length(date)), q_sim = q_sim, q_obs = q_obs);
+  df_res = DataFrame(x = collect(1:length(date)), q_sim = q_sim, q_obs = q_obs);
 
   # Save results to txt file
 
   file_save = dir_cur[1:end-5]
 
-  writetable(string(path_save, "/calib_txt/", file_save, "_station.txt"), df_txt, quotemark = '"', separator = '\t')
+  writetable(string(path_save, "/calib_txt/", file_save, "_station.txt"), df_res, quotemark = '"', separator = '\t')
 
   # Plot results using rcode
 
@@ -109,7 +108,7 @@ for dir_cur in dir_all
   """
 
   R"""
-  df <- $df_fig
+  df <- $df_res
   df$q_obs[df$q_obs == -999] <- NA
   kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
   nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
@@ -160,14 +159,13 @@ for dir_cur in dir_all
   q_obs = round(q_obs, 2);
   q_sim = round(q_sim, 2);
 
-  df_txt = DataFrame(date = date, q_sim = q_sim);
-  df_fig = DataFrame(x = collect(1:length(date)), q_sim = q_sim, q_obs = q_obs);
+  df_res = DataFrame(x = collect(1:length(date)), q_sim = q_sim, q_obs = q_obs);
 
   # Save results to txt file
 
   file_save = dir_cur[1:end-5]
 
-  writetable(string(path_save, "/valid_txt/", file_save, "_station.txt"), df_txt, quotemark = '"', separator = '\t')
+  writetable(string(path_save, "/valid_txt/", file_save, "_station.txt"), df_res, quotemark = '"', separator = '\t')
 
   # Plot results using rcode
 
@@ -179,7 +177,7 @@ for dir_cur in dir_all
   """
 
   R"""
-  df <- $df_fig
+  df <- $df_res
   df$q_obs[df$q_obs == -999] <- NA
   kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
   nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)

@@ -149,7 +149,7 @@ for dir_cur in dir_all
   q_min  = q_res[:, 2];
   q_max  = q_res[:, 3];
 
-  df_fs = DataFrame(x = x_data, q_obs = q_obs, q_mean = q_mean, q_min = q_min, q_max = q_max);
+  df_res = DataFrame(x = x_data, q_obs = q_obs, q_mean = q_mean, q_min = q_min, q_max = q_max);
 
   mkpath(path_save * "/figures");
 
@@ -165,7 +165,7 @@ for dir_cur in dir_all
   """
 
   R"""
-  df <- $df_fs
+  df <- $df_res
   df$q_obs[df$q_obs == -999] <- NA
   kge <- round(KGE(df$q_mean, df$q_obs), digits = 2)
   nse <- round(NSE(df$q_mean, df$q_obs), digits = 2)
@@ -195,6 +195,6 @@ for dir_cur in dir_all
 
   mkpath(path_save * "/tables")
 
-  writetable(string(path_save, "/tables/", file_save, "station.txt"), df_fs, quotemark = '"', separator = '\t')
+  writetable(string(path_save, "/tables/", file_save, "station.txt"), df_res, quotemark = '"', separator = '\t')
 
 end

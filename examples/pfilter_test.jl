@@ -119,7 +119,7 @@ if true
   q_min  = q_res[:, 2];
   q_max  = q_res[:, 3];
 
-  df_fs = DataFrame(x = x_data, q_obs = q_obs, q_mean = q_mean, q_min = q_min, q_max = q_max);
+  df_res = DataFrame(x = x_data, q_obs = q_obs, q_mean = q_mean, q_min = q_min, q_max = q_max);
 
   R"""
   library(labeling, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
@@ -129,7 +129,7 @@ if true
   """
 
   R"""
-  ggplot($df_fs, aes(x)) +
+  ggplot($df_res, aes(x)) +
   geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "blue") +
   geom_line(aes(y = q_obs), colour = "black", size = 1) +
   geom_line(aes(y = q_mean), colour = "red", size = 0.5) +
