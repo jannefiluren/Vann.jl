@@ -242,4 +242,4 @@ period = "valid";
 date_start = Date(1985,09,01);
 date_stop  = Date(2000,08,31);
 
-run_em_all(path_inputs, path_save, path_param, period);
+run_em_all(path_inputs, path_save, path_param, period, date_start, date_stop);
