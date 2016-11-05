@@ -12,7 +12,7 @@ using Vann
 if is_windows()
   path_inputs = "C:/Users/jmg/Dropbox/Work/VannData/Input";
   path_save   = "C:/Users/jmg/Dropbox/Work/VannData";
-  path_param  = "C:/Users/jmg/Dropbox/Work/VannData/201611021050_Results"
+  path_param  = "C:/Users/jmg/Dropbox/Work/VannData/201611051410_Results"
 end
 
 ################################################################################
@@ -32,7 +32,7 @@ mkpath(path_save * "/valid_png")
 
 # Perturb input data for snow model
 
-function perturb_input(st_snow::SnowType, prec, tair, itime)
+function perturb_input(st_snow, prec, tair, itime)
 
   n = Uniform(0.5, 1.5);
   prec_noise = rand(n, 1);
@@ -116,7 +116,7 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
 
       Neff = 1 / sum(wk.^2);
 
-      if round(Int64, Neff) < round(Int64, npart * 0.5)
+      if round(Int64, Neff) < round(Int64, npart * 0.2)
 
         println("Resampled at step: $itime")
 

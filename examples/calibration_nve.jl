@@ -18,7 +18,7 @@ if is_windows()
 end
 
 snow_choice = TinBasicType;
-hydro_choice = HbvType;
+hydro_choice = Gr4jType;
 
 calib_start = Date(2000,09,01);
 calib_stop = Date(2014,12,31);
@@ -46,7 +46,7 @@ mkpath(path_save * "/model_data")
 
 # Function for plotting results
 
-function plot_results(df_res, period)
+function plot_results(df_res, period, file_save)
 
   days_warmup = 3*365;
 
@@ -107,7 +107,7 @@ for dir_cur in dir_all
 
   # Compute potential evapotranspiration
 
-  epot = epot_monthly(date);
+  epot = epot_zero(date);
 
   # Initilize model
 
@@ -149,7 +149,7 @@ for dir_cur in dir_all
 
   period = "calib";
 
-  plot_results(df_res, period)
+  plot_results(df_res, period, file_save)
 
   ########################### Validation period ################################
 
@@ -163,7 +163,7 @@ for dir_cur in dir_all
 
   # Compute potential evapotranspiration
 
-  epot = epot_monthly(date);
+  epot = epot_zero(date);
 
   # Reinitilize model
 
@@ -191,7 +191,7 @@ for dir_cur in dir_all
 
   period = "valid";
 
-  plot_results(df_res, period)
+  plot_results(df_res, period, file_save)
 
   # Save parameter values
 
