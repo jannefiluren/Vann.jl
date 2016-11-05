@@ -180,7 +180,11 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
 
     # Plot results
 
+    days_warmup = 3*365;
+
     df_res = DataFrame(x = x_data, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
+
+    df_res = df_res[days_warmup:end, :];
 
     R"""
     library(zoo, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")

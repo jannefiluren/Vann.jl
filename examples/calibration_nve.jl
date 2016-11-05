@@ -42,6 +42,53 @@ mkpath(path_save * "/param_snow")
 mkpath(path_save * "/param_hydro")
 mkpath(path_save * "/model_data")
 
+################################################################################
+
+# Function for plotting results
+
+function plot_results(df_res, period)
+
+  days_warmup = 3*365;
+
+  df_res = df_res[days_warmup:end, :];
+
+  R"""
+  library(zoo, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
+  library(hydroGOF, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
+  library(labeling, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
+  library(ggplot2, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
+  """
+
+  R"""
+  df <- $df_res
+  df$date <- as.Date(df$date)
+  df$q_obs[df$q_obs == -999] <- NA
+  kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
+  nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
+  """
+
+  R"""
+  plot_title <- paste('KGE = ', kge, ', NSE = ', nse, sep = '')
+  path_save <- $path_save
+  file_save <- $file_save
+  period <- $period
+  """
+
+  R"""
+  p <- ggplot(df, aes(date))
+  p <- p + geom_line(aes(y = q_sim),colour = 'red', size = 0.5)
+  p <- p + geom_line(aes(y = q_obs),colour = 'blue', size = 0.5)
+  p <- p + theme_bw()
+  p <- p + labs(title = plot_title)
+  p <- p + labs(y = 'Date')
+  p <- p + labs(y = 'Discharge (mm/day)')
+  ggsave(file = paste(path_save,'/',period,'_png/',file_save,'_station.png', sep = ''), width = 30, height = 18, units = 'cm', dpi = 600)
+  """
+
+end
+
+################################################################################
+
 # Loop over all watersheds
 
 dir_all = readdir(path_inputs);
@@ -90,7 +137,7 @@ for dir_cur in dir_all
   q_obs = round(q_obs, 2);
   q_sim = round(q_sim, 2);
 
-  df_res = DataFrame(x = collect(1:length(date)), date = date, q_sim = q_sim, q_obs = q_obs);
+  df_res = DataFrame(date = Dates.format(date,"yyyy-mm-dd"), q_sim = q_sim, q_obs = q_obs);
 
   # Save results to txt file
 
@@ -100,36 +147,9 @@ for dir_cur in dir_all
 
   # Plot results using rcode
 
-  R"""
-  library(zoo, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
-  library(hydroGOF, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
-  library(labeling, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
-  library(ggplot2, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
-  """
+  period = "calib";
 
-  R"""
-  df <- $df_res
-  df$q_obs[df$q_obs == -999] <- NA
-  kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
-  nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
-  """
-
-  R"""
-  plot_title <- paste('KGE = ', kge, ' NSE = ', nse, sep = '')
-  path_save <- $path_save
-  file_save <- $file_save
-  """
-
-  R"""
-  p <- ggplot(df, aes(x))
-  p <- p + geom_line(aes(y = q_sim),colour = 'red', size = 0.5)
-  p <- p + geom_line(aes(y = q_obs),colour = 'blue', size = 0.5)
-  p <- p + theme_bw()
-  p <- p + labs(title = plot_title)
-  p <- p + labs(x = 'Index')
-  p <- p + labs(y = 'Discharge')
-  ggsave(file = paste(path_save,'/calib_png/',file_save,'_station.png', sep = ''), width = 30, height = 18, units = 'cm', dpi = 600)
-  """
+  plot_results(df_res, period)
 
   ########################### Validation period ################################
 
@@ -159,7 +179,7 @@ for dir_cur in dir_all
   q_obs = round(q_obs, 2);
   q_sim = round(q_sim, 2);
 
-  df_res = DataFrame(x = collect(1:length(date)), q_sim = q_sim, q_obs = q_obs);
+  df_res = DataFrame(date = Dates.format(date,"yyyy-mm-dd"), q_sim = q_sim, q_obs = q_obs);
 
   # Save results to txt file
 
@@ -169,36 +189,9 @@ for dir_cur in dir_all
 
   # Plot results using rcode
 
-  R"""
-  library(zoo, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
-  library(hydroGOF, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
-  library(labeling, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
-  library(ggplot2, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
-  """
+  period = "valid";
 
-  R"""
-  df <- $df_res
-  df$q_obs[df$q_obs == -999] <- NA
-  kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
-  nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
-  """
-
-  R"""
-  plot_title <- paste('KGE = ', kge, ' NSE = ', nse, sep = '')
-  path_save <- $path_save
-  file_save <- $file_save
-  """
-
-  R"""
-  p <- ggplot(df, aes(x))
-  p <- p + geom_line(aes(y = q_sim),colour = 'red', size = 0.5)
-  p <- p + geom_line(aes(y = q_obs),colour = 'blue', size = 0.5)
-  p <- p + theme_bw()
-  p <- p + labs(title = plot_title)
-  p <- p + labs(x = 'Index')
-  p <- p + labs(y = 'Discharge')
-  ggsave(file = paste(path_save,'/valid_png/',file_save,'_station.png', sep = ''), width = 30, height = 18, units = 'cm', dpi = 600)
-  """
+  plot_results(df_res, period)
 
   # Save parameter values
 
