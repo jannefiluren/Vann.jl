@@ -183,9 +183,9 @@ for dir_cur in dir_all
 
   # Save results to txt file
 
-  file_save = dir_cur[1:end-5]
+  file_save = dir_cur[1:end-5];
 
-  writetable(string(path_save, "/valid_txt/", file_save, "_station.txt"), df_res, quotemark = '"', separator = '\t')
+  writetable(string(path_save, "/valid_txt/", file_save, "_station.txt"), df_res, quotemark = '"', separator = '\t');
 
   # Plot results using rcode
 
