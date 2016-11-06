@@ -86,6 +86,13 @@ function enkf(state_ens, d_matrix, hx_matrix)
 
   K = C_XY / (C_YY + R_sample);
 
+  if any(isnan(K))
+    println("R_sample = $R_sample")
+    println("C_YY = $C_YY")
+    println("C_XY = $C_XY")
+    error("Nans in Kalman gain")
+  end
+
   # Update states (DeChant and Mandel)
 
   Xhat = X + K*(D-HX);
@@ -156,7 +163,7 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, nens
 
       # Perturb observations
 
-      sigma = 0.1 * q_obs[itime];
+      sigma = max(0.1 * q_obs[itime], 0.1);
 
       obs_ens = q_obs[itime] + sigma * randn(Float64, 1, 100);
 
