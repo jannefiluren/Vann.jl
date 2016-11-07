@@ -17,6 +17,7 @@ if is_windows()
   path_save = "C:/Users/jmg/Dropbox/Work/VannData";
 end
 
+epot_choice = epot_monthly;
 snow_choice = TinBasicType;
 hydro_choice = Gr4jType;
 
@@ -107,7 +108,7 @@ for dir_cur in dir_all
 
   # Compute potential evapotranspiration
 
-  epot = epot_zero(date);
+  epot = eval(Expr(:call, epot_choice, date));
 
   # Initilize model
 
@@ -163,7 +164,7 @@ for dir_cur in dir_all
 
   # Compute potential evapotranspiration
 
-  epot = epot_zero(date);
+  epot = eval(Expr(:call, epot_choice, date));
 
   # Reinitilize model
 
