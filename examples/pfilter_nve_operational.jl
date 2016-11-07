@@ -24,7 +24,7 @@ mkpath(path_save * "/tables")
 
 # Perturb input data for snow model
 
-function perturb_input(st_snow::SnowType, prec, tair, itime)
+function perturb_input(st_snow, prec, tair, itime)
 
   n = Uniform(0.5, 1.5);
   prec_noise = rand(n, 1);
@@ -201,9 +201,8 @@ function run_em_all(path_inputs, path_save, path_param, date_start)
 
     # Plot results
 	
-	df_res = DataFrame(x = x_data, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
-    #df_res = DataFrame(x = x_data[end-200:end], q_obs = q_obs[end-200:end], q_sim = q_sim[end-200:end], q_min = q_min[end-200:end], q_max = q_max[end-200:end]);
-
+	df_res = DataFrame(date = Dates.format(date,"yyyy-mm-dd"), q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
+    
     R"""
     library(zoo)
     library(hydroGOF)
@@ -213,7 +212,8 @@ function run_em_all(path_inputs, path_save, path_param, date_start)
 
     R"""
     df <- $df_res
-    df$q_obs[df$q_obs == -999] <- NA
+	df$date <- as.Date(df$date)
+	df$q_obs[df$q_obs == -999] <- NA
     kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
     nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
     """
@@ -225,7 +225,7 @@ function run_em_all(path_inputs, path_save, path_param, date_start)
     """
 
     R"""
-    p <- ggplot(df, aes(x))
+    p <- ggplot(df, aes(date))
     p <- p + geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "deepskyblue1")
     p <- p + geom_line(aes(y = q_obs), colour = "black", size = 1)
     p <- p + geom_line(aes(y = q_sim), colour = "red", size = 0.5)
@@ -234,8 +234,8 @@ function run_em_all(path_inputs, path_save, path_param, date_start)
 
     R"""
     p <- p + labs(title = plot_title)
-    p <- p + labs(x = 'Index')
-    p <- p + labs(y = 'Discharge')
+    p <- p + labs(x = 'Date')
+    p <- p + labs(y = 'Discharge (mm/day)')
     ggsave(file = paste(path_save,"/plots/",file_save,"_pfilter.png", sep = ""), width = 30, height = 18, units = 'cm', dpi = 600)
     """
 
