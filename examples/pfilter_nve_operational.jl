@@ -1,3 +1,6 @@
+#!/home/jmg/Julia/bin/julia
+
+
 ################################################################################
 
 # Add packages
@@ -110,7 +113,7 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
 
       if round(Int64, Neff) < round(Int64, npart * 0.5)
 	  
-		println("Perform resampling at $itime")
+		# println("Perform resampling at $itime")
 
         indx = Vann.resample(wk);
 
@@ -142,13 +145,7 @@ function run_em_all(path_inputs, path_save, path_param, date_start)
   # Loop over all watersheds
   
   dir_all = readdir(path_inputs);
-
-
-
-  dir_all = dir_all[1:2];
-
-
-
+  
   for dir_cur in dir_all
 
     # Load data
