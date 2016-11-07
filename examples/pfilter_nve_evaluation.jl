@@ -12,7 +12,7 @@ using Vann
 if is_windows()
   path_inputs = "C:/Users/jmg/Dropbox/Work/VannData/Input";
   path_save   = "C:/Users/jmg/Dropbox/Work/VannData";
-  path_param  = "C:/Users/jmg/Dropbox/Work/VannData/201611051410_Results"
+  path_param  = "C:/Users/jmg/Dropbox/Work/VannData/201611061747_Results";
 end
 
 ################################################################################
@@ -163,7 +163,7 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
 
     # Compute potential evapotranspiration
 
-    epot = epot_zero(date);
+    epot = epot_monthly(date);
 
     # Load parameters
 

@@ -33,7 +33,7 @@ function calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tai
 
   end
 
-  return(nse(q_sim, q_obs));
+  return(kge(q_sim, q_obs));
 
 end
 
