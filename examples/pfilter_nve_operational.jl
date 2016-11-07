@@ -67,7 +67,7 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
 
     # Run particle filter
 
-    if true
+    if q_obs[itime] >= 0
 
       for ipart = 1:npart
 
@@ -86,6 +86,8 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
       Neff = 1 / sum(wk.^2);
 
       if round(Int64, Neff) < round(Int64, npart * 0.5)
+	  
+		println("Perform resampling at $itime")
 
         indx = Vann.resample(wk);
 
@@ -112,10 +114,10 @@ end
 
 ################################################################################
 
-function run_em_all(path_inputs, path_save, path_param, period, date_start)
+function run_em_all(path_inputs, path_save, path_param, date_start)
 
   # Loop over all watersheds
-
+  
   dir_all = readdir(path_inputs);
 
   for dir_cur in dir_all
@@ -169,16 +171,15 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start)
     writetable(string(path_save, "/tables/", file_save, "_station.txt"), df_res, quotemark = '"', separator = '\t');
 
     # Plot results
-
-    df_res = DataFrame(x = x_data, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
+	
+	df_res = DataFrame(x = x_data, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
+    #df_res = DataFrame(x = x_data[end-200:end], q_obs = q_obs[end-200:end], q_sim = q_sim[end-200:end], q_min = q_min[end-200:end], q_max = q_max[end-200:end]);
 
     R"""
-    library(zoo, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
-    library(hydroGOF, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
-    library(labeling, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
-    library(ggplot2, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
-    library(yaml, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
-    library(plotly, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
+    library(zoo)
+    library(hydroGOF)
+    library(labeling)
+    library(ggplot2)
     """
 
     R"""
@@ -218,6 +219,6 @@ end
 
 # Run particle filter
 
-date_start = Date(2010,09,01);
+date_start = Date(2013,09,01);
 
-run_em_all(path_inputs, path_save, path_param, period, date_start);
+run_em_all(path_inputs, path_save, path_param, date_start);
