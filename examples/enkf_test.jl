@@ -12,7 +12,7 @@ using Vann
 if is_windows()
   path_inputs = "C:/Users/jmg/Dropbox/Work/VannData/Input";
   path_save   = "C:/Users/jmg/Dropbox/Work/VannData";
-  path_param  = "C:/Users/jmg/Dropbox/Work/VannData/201611061747_Results";
+  path_param  = "C:/Users/jmg/Dropbox/Work/VannData/201611051410_Results"
 end
 
 ################################################################################
@@ -53,9 +53,59 @@ end
 
 ################################################################################
 
-# Particle filter
+function enkf(state_ens, d_matrix, hx_matrix)
 
-function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npart)
+  # Variables (Mandel)
+
+  X  = state_ens;
+  D  = d_matrix;
+  HX = hx_matrix;
+
+  # Subtract ensemble mean (Mandel)
+
+  (n, N) = size(X);
+  (m, N) = size(D);
+
+  A    = X - 1 / N * (X * ones(Float64, N, 1)) * ones(Float64, 1, N);
+  HA   = HX - 1 / N * (HX * ones(Float64, N, 1)) * ones(Float64, 1, N);
+  Dtmp = D - 1 / N * (D * ones(Float64, N, 1)) * ones(Float64, 1, N);
+
+  # Observation error variance (Mandel-theoretic, Evensen-sample)
+
+  R_sample = Dtmp * Dtmp' / (N-1);
+
+  # Variance of predicted observations (DeChant and Mandel)
+
+  C_YY = 1 / (N-1) * HA * HA';
+
+  # Covariance between states ensemble and predicted observations (DeChant and Mandel)
+
+  C_XY = 1 / (N-1) * A * HA';
+
+  # Compute kalman gain (DeChant)
+
+  K = C_XY / (C_YY + R_sample);
+
+  if any(isnan(K))
+    println("R_sample = $R_sample")
+    println("C_YY = $C_YY")
+    println("C_XY = $C_XY")
+    error("Nans in Kalman gain")
+  end
+
+  # Update states (DeChant and Mandel)
+
+  Xhat = X + K*(D-HX);
+
+  return(Xhat);
+
+end
+
+################################################################################
+
+# Ensemble kalman filter
+
+function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, nens)
 
   srand(1);
 
@@ -66,66 +116,84 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
 
   # Initilize state variables
 
-  st_snow  = [TinBasicType(param_snow, frac) for i in 1:npart];
-  st_hydro = [Gr4jType(param_hydro, frac) for i in 1:npart];
+  st_snow  = [TinBasicType(param_snow, frac) for i in 1:nens];
+  st_hydro = [Gr4jType(param_hydro, frac) for i in 1:nens];
 
-  for i in eachindex(st_snow)
-    st_hydro[i].st = zeros(Float64, 2);
-  end
+  # Allocate arrays
 
-  # Initilize particles
+  q_res  = zeros(Float64, ntimes, 3);
+  q_sim  = zeros(Float64, 1, nens);
+  swe    = zeros(Float64, nzones, nens);
+  st     = zeros(Float64, 2, nens);
+  st_uh1 = zeros(Float64, 20, nens);
+  st_uh2 = zeros(Float64, 40, nens);
 
-  wk = ones(npart) / npart;
-
-  # Run model
-
-  q_sim = zeros(Float64, npart);
-  q_res = zeros(Float64, ntimes, 3);
+  # Start time Loop
 
   for itime = 1:ntimes
 
-    for ipart = 1:npart
+    # Perturb inputs and run models
 
-      perturb_input(st_snow[ipart], prec, tair, itime);
+    for iens = 1:nens
 
-      snow_model(st_snow[ipart]);
+      perturb_input(st_snow[iens], prec, tair, itime);
 
-      get_input(st_snow[ipart], st_hydro[ipart], epot, itime);
+      snow_model(st_snow[iens]);
 
-      q_sim[ipart] = hydro_model(st_hydro[ipart]);
+      get_input(st_snow[iens], st_hydro[iens], epot, itime);
+
+      q_sim[iens] = hydro_model(st_hydro[iens]);
 
     end
 
-    # Run particle filter
+    # Run filter part
 
-    if true
+    if q_obs[itime] >= 0
 
-      for ipart = 1:npart
+      # Add states to arrays
 
-        wk[ipart] = pdf(Normal(q_obs[itime], max(0.1 * q_obs[itime], 0.1)), q_sim[ipart]) * wk[ipart];
+      for iens = 1:nens
+
+        swe[:, iens]    = st_snow[iens].swe;
+        st[:, iens]     = st_hydro[iens].st;
+        st_uh1[:, iens] = st_hydro[iens].st_uh1;
+        st_uh2[:, iens] = st_hydro[iens].st_uh2;
 
       end
 
-      if sum(wk) > 0.0
-        wk = wk / sum(wk);
-      else
-        wk = ones(npart) / npart;
-      end
+      # Perturb observations
 
-      # Perform resampling
+      sigma = max(0.1 * q_obs[itime], 0.1);
 
-      Neff = 1 / sum(wk.^2);
+      obs_ens = q_obs[itime] + sigma * randn(Float64, 1, 100);
 
-      if round(Int64, Neff) < round(Int64, npart * 0.2)
+      # Run ensemble kalman filter
 
-        println("Resampled at step: $itime")
+      swe    = enkf(swe, obs_ens, q_sim);
+      st     = enkf(st, obs_ens, q_sim);
+      st_uh1 = enkf(st_uh1, obs_ens, q_sim);
+      st_uh2 = enkf(st_uh2, obs_ens, q_sim);
+      q_sim  = enkf(q_sim, obs_ens, q_sim);
 
-        indx = Vann.resample(wk);
+      # Check limits of states
 
-        st_snow  = [deepcopy(st_snow[i]) for i in indx];
-        st_hydro = [deepcopy(st_hydro[i]) for i in indx];
+      swe[swe .< 0] = 0.;
+      st[st .< 0] = 0.;
+      st_uh1[st_uh1 .< 0] = 0.;
+      st_uh2[st_uh2 .< 0] = 0.;
+      q_sim[q_sim .< 0] = 0.
 
-        wk = ones(npart) / npart;
+      st[1, st[1, :] .> param_hydro[1]] = param_hydro[1];
+      st[2, st[2, :] .> param_hydro[3]] = param_hydro[3];
+
+      # Add arrays to states
+
+      for iens = 1:nens
+
+        st_snow[iens].swe = swe[:, iens];
+        st_hydro[iens].st = st[:, iens];
+        st_hydro[iens].st_uh1 = st_uh1[:, iens];
+        st_hydro[iens].st_uh2 = st_uh2[:, iens];
 
       end
 
@@ -133,7 +201,7 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
 
     # Store results
 
-    q_res[itime, 1] = sum(wk .* q_sim);
+    q_res[itime, 1] = mean(q_sim);
     q_res[itime, 2] = minimum(q_sim);
     q_res[itime, 3] = maximum(q_sim);
 
@@ -163,7 +231,7 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
 
     # Compute potential evapotranspiration
 
-    epot = epot_monthly(date);
+    epot = epot_zero(date);
 
     # Load parameters
 
@@ -177,9 +245,9 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
 
     # Run model and filter
 
-    npart = 3000;
+    nens = 100;
 
-    q_res = run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npart);
+    q_res = run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, nens);
 
     # Add results to dataframe
 
@@ -193,7 +261,7 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
     q_min = round(q_min, 2);
     q_max = round(q_max, 2);
 
-    df_res = DataFrame(x = x_data, date = date, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
+    df_res = DataFrame(date = Dates.format(date,"yyyy-mm-dd"), q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
 
     # Save results to txt file
 
@@ -205,8 +273,6 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
 
     days_warmup = 3*365;
 
-    df_res = DataFrame(x = x_data, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
-
     df_res = df_res[days_warmup:end, :];
 
     R"""
@@ -214,12 +280,11 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
     library(hydroGOF, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
     library(labeling, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
     library(ggplot2, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
-    library(yaml, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
-    library(plotly, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
     """
 
     R"""
     df <- $df_res
+    df$date <- as.Date(df$date)
     df$q_obs[df$q_obs == -999] <- NA
     kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
     nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
@@ -232,7 +297,7 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
     """
 
     R"""
-    p <- ggplot(df, aes(x))
+    p <- ggplot(df, aes(date))
     p <- p + geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "deepskyblue1")
     p <- p + geom_line(aes(y = q_obs), colour = "black", size = 1)
     p <- p + geom_line(aes(y = q_sim), colour = "red", size = 0.5)
@@ -241,7 +306,7 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
 
     R"""
     p <- p + labs(title = plot_title)
-    p <- p + labs(x = 'Index')
+    p <- p + labs(x = 'Date')
     p <- p + labs(y = 'Discharge')
     ggsave(file = paste(path_save,"/",$period,"_png/",file_save,"_pfilter.png", sep = ""), width = 30, height = 18, units = 'cm', dpi = 600)
     """
@@ -249,7 +314,6 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
   end
 
 end
-
 
 ################################################################################
 

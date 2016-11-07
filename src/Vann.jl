@@ -13,7 +13,7 @@ export HbvType, Gr4jType
 export TinBasicType, TinStandardType
 
 export hydro_model, snow_model
-export resample, perturb_input
+export resample
 export load_data, crop_data
 export get_param_range, init_states
 export run_model_calib, calib_wrapper
