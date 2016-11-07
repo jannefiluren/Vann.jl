@@ -141,6 +141,12 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start)
 
   dir_all = readdir(path_inputs);
 
+
+
+  dir_all = dir_all[1:2];
+
+
+
   for dir_cur in dir_all
 
     # Load data
