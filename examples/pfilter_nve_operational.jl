@@ -112,8 +112,8 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
       Neff = 1 / sum(wk.^2);
 
       if round(Int64, Neff) < round(Int64, npart * 0.5)
-	  
-		# println("Perform resampling at $itime")
+
+        println("Perform resampling at $itime")
 
         indx = Vann.resample(wk);
 
@@ -143,9 +143,9 @@ end
 function run_em_all(path_inputs, path_save, path_param, date_start)
 
   # Loop over all watersheds
-  
+
   dir_all = readdir(path_inputs);
-  
+
   for dir_cur in dir_all
 
     # Load data
@@ -197,43 +197,38 @@ function run_em_all(path_inputs, path_save, path_param, date_start)
     writetable(string(path_save, "/tables/", file_save, "_station.txt"), df_res, quotemark = '"', separator = '\t');
 
     # Plot results
-	
-	df_res = DataFrame(date = Dates.format(date,"yyyy-mm-dd"), q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
-    
+
+    df_res = DataFrame(date = Dates.format(date,"yyyy-mm-dd"), q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
+
+    df_res = df_res[end-365:end, :];
+
     R"""
     library(zoo)
     library(hydroGOF)
     library(labeling)
     library(ggplot2)
-    """
 
-    R"""
     df <- $df_res
-	df$date <- as.Date(df$date)
-	df$q_obs[df$q_obs == -999] <- NA
+    df$date <- as.Date(df$date)
+    df$q_obs[df$q_obs == -999] <- NA
     kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
     nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
-    """
 
-    R"""
-    plot_title <- paste('KGE = ', kge, ' NSE = ', nse, sep = '')
+    plot_title <- paste('KGE = ', kge, ', NSE = ', nse, ', Generated = ', Sys.time(), sep = '')
     path_save <- $path_save
     file_save <- $file_save
-    """
 
-    R"""
     p <- ggplot(df, aes(date))
     p <- p + geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "deepskyblue1")
     p <- p + geom_line(aes(y = q_obs), colour = "black", size = 1)
     p <- p + geom_line(aes(y = q_sim), colour = "red", size = 0.5)
+    p <- p + geom_vline(aes(xintercept = as.numeric(Sys.Date())), linetype = 2)
     p <- p + theme_bw()
-    """
 
-    R"""
     p <- p + labs(title = plot_title)
     p <- p + labs(x = 'Date')
     p <- p + labs(y = 'Discharge (mm/day)')
-    ggsave(file = paste(path_save,"/plots/",file_save,"_pfilter.png", sep = ""), width = 30, height = 18, units = 'cm', dpi = 600)
+    ggsave(file = paste(path_save,"/plots/",file_save,"_pfilter.png", sep = ""), width = 25, height = 16, units = 'cm', dpi = 600)
     """
 
   end
