@@ -10,9 +10,9 @@ using Vann
 ################################################################################
 
 if is_windows()
-  path_inputs = "C:/Users/jmg/Dropbox/Work/VannData/Input";
-  path_save   = "C:/Users/jmg/Dropbox/Work/VannData";
-  path_param  = "C:/Users/jmg/Dropbox/Work/VannData/201611051410_Results"
+  path_inputs = "C:/Work/VannData/Input";
+  path_save   = "C:/Work/VannData";
+  path_param  = "C:/Work/VannData/201611061747_Results"
 end
 
 ################################################################################
@@ -103,7 +103,7 @@ end
 
 ################################################################################
 
-# Ensemble kalman filter
+# Ensemble Kalman filter
 
 function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, nens)
 
@@ -280,31 +280,22 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
     library(hydroGOF, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
     library(labeling, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
     library(ggplot2, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
-    """
-
-    R"""
+    
     df <- $df_res
     df$date <- as.Date(df$date)
     df$q_obs[df$q_obs == -999] <- NA
     kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
     nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
-    """
-
-    R"""
+    
     plot_title <- paste('KGE = ', kge, ' NSE = ', nse, sep = '')
     path_save <- $path_save
     file_save <- $file_save
-    """
-
-    R"""
+    
     p <- ggplot(df, aes(date))
     p <- p + geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "deepskyblue1")
     p <- p + geom_line(aes(y = q_obs), colour = "black", size = 1)
     p <- p + geom_line(aes(y = q_sim), colour = "red", size = 0.5)
     p <- p + theme_bw()
-    """
-
-    R"""
     p <- p + labs(title = plot_title)
     p <- p + labs(x = 'Date')
     p <- p + labs(y = 'Discharge')
