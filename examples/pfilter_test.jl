@@ -5,9 +5,32 @@ using Distributions
 using DataFrames
 using Vann
 
+
+# Perturb input data for snow model
+
+function perturb_input(st_snow, prec, tair, itime)
+
+  n = Uniform(0.5, 1.5);
+  prec_noise = rand(n, 1);
+
+  n = Normal(0.0, 2);
+  tair_noise = rand(n, 1);
+
+  # Assign inputs to snow model
+
+  for izone in eachindex(st_snow.prec)
+
+    st_snow.prec[izone] = prec[izone, itime] * prec_noise[1];
+    st_snow.tair[izone] = tair[izone, itime] + tair_noise[1];
+
+  end
+
+end
+
+
 # Particle filter
 
-function run_filter(prec, tair, q_obs, param_snow, param_hydro, frac, npart)
+function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npart)
 
   srand(1);
 
@@ -18,8 +41,8 @@ function run_filter(prec, tair, q_obs, param_snow, param_hydro, frac, npart)
 
   # Initilize state variables
 
-  st_snow  = [Vann.TinBasicType(param_snow, frac) for i in 1:npart];
-  st_hydro = [Vann.Gr4jType(param_hydro, frac) for i in 1:npart];
+  st_snow  = [TinBasicType(param_snow, frac) for i in 1:npart];
+  st_hydro = [Gr4jType(param_hydro, frac) for i in 1:npart];
 
   for i in eachindex(st_snow)
     st_hydro[i].st = zeros(Float64, 2);
@@ -40,11 +63,11 @@ function run_filter(prec, tair, q_obs, param_snow, param_hydro, frac, npart)
 
       perturb_input(st_snow[ipart], prec, tair, itime);
 
-      Vann.snow_model(st_snow[ipart]);
+      snow_model(st_snow[ipart]);
 
-      get_input(st_snow[ipart], st_hydro[ipart]);
+      get_input(st_snow[ipart], st_hydro[ipart], epot, itime);
 
-      q_sim[ipart] = Vann.hydro_model(st_hydro[ipart]);
+      q_sim[ipart] = hydro_model(st_hydro[ipart]);
 
     end
 
@@ -68,7 +91,7 @@ function run_filter(prec, tair, q_obs, param_snow, param_hydro, frac, npart)
 
       Neff = 1 / sum(wk.^2);
 
-      if round(Int64, Neff) < round(Int64, npart * 0.5)
+      if round(Int64, Neff) < round(Int64, npart * 0.8)
 
         println("Resampled at step: $itime")
 
@@ -95,20 +118,25 @@ function run_filter(prec, tair, q_obs, param_snow, param_hydro, frac, npart)
 
 end
 
+
 # Read data
 
 date, tair, prec, q_obs, frac = load_data("../data_atnasjo");
 
+# Compute potential evapotranspiration
+
+epot = epot_zero(date);
+
 # Parameters
 
-param_snow  = [0.0, 3.69, 1.02];
-param_hydro = [74.59, 0.81, 214.98, 1.24];
+param_snow  = [-0.350484, 1.0, 0.7082];
+param_hydro = [1.0, 4.29214, 125.103, 1.26226];
 
 # Run model
 
 npart = 3000;
 
-q_res = run_filter(prec, tair, q_obs, param_snow, param_hydro, frac, npart);
+q_res = run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npart);
 
 # Plot results
 
@@ -126,9 +154,7 @@ if true
   library(ggplot2, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
   library(yaml, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
   library(plotly, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
-  """
-
-  R"""
+  
   ggplot($df_res, aes(x)) +
   geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "blue") +
   geom_line(aes(y = q_obs), colour = "black", size = 1) +
