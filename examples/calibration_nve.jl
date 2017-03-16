@@ -5,6 +5,7 @@ using RCall
 using DataFrames
 using JLD
 
+
 ################################################################################
 
 if is_linux()
@@ -13,8 +14,8 @@ if is_linux()
 end
 
 if is_windows()
-  path_inputs = "C:/Users/jmg/Dropbox/Work/VannData/Input";
-  path_save = "C:/Users/jmg/Dropbox/Work/VannData";
+  path_inputs = "C:/Work/VannData/Input";
+  path_save = "C:/Work/VannData";
 end
 
 epot_choice = epot_monthly;
@@ -26,6 +27,7 @@ calib_stop = Date(2014,12,31);
 
 valid_start = Date(1985,09,01);
 valid_stop = Date(2000,08,31);
+
 
 ################################################################################
 
@@ -43,6 +45,7 @@ mkpath(path_save * "/param_snow")
 mkpath(path_save * "/param_hydro")
 mkpath(path_save * "/model_data")
 
+
 ################################################################################
 
 # Function for plotting results
@@ -58,24 +61,19 @@ function plot_results(df_res, period, file_save)
   library(hydroGOF, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
   library(labeling, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
   library(ggplot2, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
-  """
-
-  R"""
+  
   df <- $df_res
   df$date <- as.Date(df$date)
   df$q_obs[df$q_obs == -999] <- NA
+  
   kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
   nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
-  """
-
-  R"""
+  
   plot_title <- paste('KGE = ', kge, ', NSE = ', nse, sep = '')
   path_save <- $path_save
   file_save <- $file_save
   period <- $period
-  """
-
-  R"""
+  
   p <- ggplot(df, aes(date))
   p <- p + geom_line(aes(y = q_sim),colour = 'red', size = 0.5)
   p <- p + geom_line(aes(y = q_obs),colour = 'blue', size = 0.5)

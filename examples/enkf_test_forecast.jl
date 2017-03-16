@@ -6,14 +6,17 @@ using RCall
 using Distributions
 using DataFrames
 using Vann
+using DataAssim
+
 
 ################################################################################
 
 if is_windows()
-  path_inputs = "C:/Users/jmg/Dropbox/Work/VannData/Input";
-  path_save   = "C:/Users/jmg/Dropbox/Work/VannData";
-  path_param  = "C:/Users/jmg/Dropbox/Work/VannData/201611061747_Results"
+  path_inputs = "C:/Work/VannData/Input";
+  path_save   = "C:/Work/VannData";
+  path_param  = "C:/Work/VannData/201611061747_Results"
 end
+
 
 ################################################################################
 
@@ -29,6 +32,7 @@ mkpath(path_save * "/calib_forecast")
 mkpath(path_save * "/valid_txt")
 mkpath(path_save * "/valid_png")
 mkpath(path_save * "/valid_forecast")
+
 
 ################################################################################
 
@@ -53,55 +57,6 @@ function perturb_input(st_snow, prec, tair, itime)
 
 end
 
-################################################################################
-
-function enkf(state_ens, d_matrix, hx_matrix)
-
-  # Variables (Mandel)
-
-  X  = state_ens;
-  D  = d_matrix;
-  HX = hx_matrix;
-
-  # Subtract ensemble mean (Mandel)
-
-  (n, N) = size(X);
-  (m, N) = size(D);
-
-  A    = X - 1 / N * (X * ones(Float64, N, 1)) * ones(Float64, 1, N);
-  HA   = HX - 1 / N * (HX * ones(Float64, N, 1)) * ones(Float64, 1, N);
-  Dtmp = D - 1 / N * (D * ones(Float64, N, 1)) * ones(Float64, 1, N);
-
-  # Observation error variance (Mandel-theoretic, Evensen-sample)
-
-  R_sample = Dtmp * Dtmp' / (N-1);
-
-  # Variance of predicted observations (DeChant and Mandel)
-
-  C_YY = 1 / (N-1) * HA * HA';
-
-  # Covariance between states ensemble and predicted observations (DeChant and Mandel)
-
-  C_XY = 1 / (N-1) * A * HA';
-
-  # Compute kalman gain (DeChant)
-
-  K = C_XY / (C_YY + R_sample);
-
-  if any(isnan(K))
-    println("R_sample = $R_sample")
-    println("C_YY = $C_YY")
-    println("C_XY = $C_XY")
-    error("Nans in Kalman gain")
-  end
-
-  # Update states (DeChant and Mandel)
-
-  Xhat = X + K*(D-HX);
-
-  return(Xhat);
-
-end
 
 ################################################################################
 
@@ -276,6 +231,7 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, nens
 
 end
 
+
 ################################################################################
 
 function run_em_all(path_inputs, path_save, path_param, period, date_start, date_stop)
@@ -345,31 +301,23 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
     library(hydroGOF, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
     library(labeling, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
     library(ggplot2, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
-    """
-
-    R"""
+    
     df <- $df_res
     df$date <- as.Date(df$date)
     df$q_obs[df$q_obs == -999] <- NA
+    
     kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
     nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
-    """
-
-    R"""
+    
     plot_title <- paste('KGE = ', kge, ' NSE = ', nse, sep = '')
     path_save <- $path_save
     file_save <- $file_save
-    """
-
-    R"""
+    
     p <- ggplot(df, aes(date))
     p <- p + geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "deepskyblue1")
     p <- p + geom_line(aes(y = q_obs), colour = "black", size = 1)
     p <- p + geom_line(aes(y = q_sim), colour = "red", size = 0.5)
     p <- p + theme_bw()
-    """
-
-    R"""
     p <- p + labs(title = plot_title)
     p <- p + labs(x = 'Date')
     p <- p + labs(y = 'Discharge')

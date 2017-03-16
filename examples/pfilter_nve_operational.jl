@@ -18,12 +18,14 @@ path_inputs = "//hdata/fou/jmg/FloodForecasting/Data";
 path_save   = "//hdata/fou/jmg/FloodForecasting/Operational";
 path_param  = "//hdata/fou/jmg/FloodForecasting/201611021050_Results"
 
+
 ################################################################################
 
 # Folder for saving results
 
 mkpath(path_save * "/plots")
 mkpath(path_save * "/tables")
+
 
 ################################################################################
 
@@ -47,6 +49,7 @@ function perturb_input(st_snow, prec, tair, itime)
   end
 
 end
+
 
 ################################################################################
 
@@ -139,6 +142,7 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
   return(q_res);
 
 end
+
 
 ################################################################################
 

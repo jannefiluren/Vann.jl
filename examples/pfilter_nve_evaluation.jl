@@ -12,10 +12,11 @@ using DataAssim
 ################################################################################
 
 if is_windows()
-  path_inputs = "C:/Users/jmg/Dropbox/Work/VannData/Input";
-  path_save   = "C:/Users/jmg/Dropbox/Work/VannData";
-  path_param  = "C:/Users/jmg/Dropbox/Work/VannData/201611061747_Results";
+  path_inputs = "C:/Work/VannData/Input";
+  path_save   = "C:/Work/VannData";
+  path_param  = "C:/Work/VannData/201611061747_Results";
 end
+
 
 ################################################################################
 
@@ -29,6 +30,7 @@ mkpath(path_save * "/calib_txt")
 mkpath(path_save * "/calib_png")
 mkpath(path_save * "/valid_txt")
 mkpath(path_save * "/valid_png")
+
 
 ################################################################################
 
@@ -52,6 +54,7 @@ function perturb_input(st_snow, prec, tair, itime)
   end
 
 end
+
 
 ################################################################################
 
@@ -145,6 +148,7 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
 
 end
 
+
 ################################################################################
 
 function run_em_all(path_inputs, path_save, path_param, period, date_start, date_stop)
@@ -218,30 +222,22 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
     library(ggplot2, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
     library(yaml, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
     library(plotly, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
-    """
-
-    R"""
+    
     df <- $df_res
     df$q_obs[df$q_obs == -999] <- NA
+    
     kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
     nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
-    """
-
-    R"""
+    
     plot_title <- paste('KGE = ', kge, ' NSE = ', nse, sep = '')
     path_save <- $path_save
     file_save <- $file_save
-    """
-
-    R"""
+    
     p <- ggplot(df, aes(x))
     p <- p + geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "deepskyblue1")
     p <- p + geom_line(aes(y = q_obs), colour = "black", size = 1)
     p <- p + geom_line(aes(y = q_sim), colour = "red", size = 0.5)
     p <- p + theme_bw()
-    """
-
-    R"""
     p <- p + labs(title = plot_title)
     p <- p + labs(x = 'Index')
     p <- p + labs(y = 'Discharge')
