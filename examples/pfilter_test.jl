@@ -4,6 +4,7 @@ using RCall
 using Distributions
 using DataFrames
 using Vann
+using DataAssim
 
 
 # Perturb input data for snow model
@@ -95,7 +96,7 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
 
         println("Resampled at step: $itime")
 
-        indx = Vann.resample(wk);
+        indx = resample(wk);
 
         st_snow  = [deepcopy(st_snow[i]) for i in indx];
         st_hydro = [deepcopy(st_hydro[i]) for i in indx];
@@ -147,15 +148,18 @@ if true
   q_min  = q_res[:, 2];
   q_max  = q_res[:, 3];
 
-  df_res = DataFrame(x = x_data, q_obs = q_obs, q_mean = q_mean, q_min = q_min, q_max = q_max);
+  df_res = DataFrame(date = Dates.format(date, "yyyy-mm-dd"), q_obs = q_obs, q_mean = q_mean, q_min = q_min, q_max = q_max);
 
   R"""
   library(labeling, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
   library(ggplot2, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
   library(yaml, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
   library(plotly, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
-  
-  ggplot($df_res, aes(x)) +
+
+  df <- $df_res
+  df$date <- as.Date(df$date)
+
+  ggplot(df, aes(date)) +
   geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "blue") +
   geom_line(aes(y = q_obs), colour = "black", size = 1) +
   geom_line(aes(y = q_mean), colour = "red", size = 0.5) +

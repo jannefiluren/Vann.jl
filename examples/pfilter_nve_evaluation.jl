@@ -6,6 +6,8 @@ using RCall
 using Distributions
 using DataFrames
 using Vann
+using DataAssim
+
 
 ################################################################################
 
@@ -120,7 +122,7 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
 
         println("Resampled at step: $itime")
 
-        indx = Vann.resample(wk);
+        indx = resample(wk);
 
         st_snow  = [deepcopy(st_snow[i]) for i in indx];
         st_hydro = [deepcopy(st_hydro[i]) for i in indx];
