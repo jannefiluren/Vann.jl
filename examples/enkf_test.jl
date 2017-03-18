@@ -11,27 +11,6 @@ using DataAssim
 
 ################################################################################
 
-if is_windows()
-  path_inputs = "C:/Work/VannData/Input";
-  path_save   = "C:/Work/VannData";
-  path_param  = "C:/Work/VannData/201611061747_Results"
-end
-
-################################################################################
-
-# Folder for saving results
-
-time_now = Dates.format(now(), "yyyymmddHHMM");
-
-path_save = path_save * "/" * time_now * "_Results";
-
-mkpath(path_save * "/calib_txt")
-mkpath(path_save * "/calib_png")
-mkpath(path_save * "/valid_txt")
-mkpath(path_save * "/valid_png")
-
-################################################################################
-
 # Perturb input data for snow model
 
 function perturb_input(st_snow, prec, tair, itime)
@@ -164,117 +143,84 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, nens
 
 end
 
-################################################################################
-
-function run_em_all(path_inputs, path_save, path_param, period, date_start, date_stop)
-
-  # Loop over all watersheds
-
-  dir_all = readdir(path_inputs);
-
-  for dir_cur in dir_all
-
-    # Load data
-
-    date, tair, prec, q_obs, frac = load_data("$path_inputs/$dir_cur");
-
-    # Crop data
-
-    date, tair, prec, q_obs = crop_data(date, tair, prec, q_obs, date_start, date_stop);
-
-    # Compute potential evapotranspiration
-
-    epot = epot_zero(date);
-
-    # Load parameters
-
-    filename = dir_cur[1:end-4] * "param_snow.txt";
-    param_snow = readdlm("$path_param/param_snow/$filename", '\t');
-    param_snow = squeeze(param_snow,2);
-
-    filename = dir_cur[1:end-4] * "param_hydro.txt";
-    param_hydro = readdlm("$path_param/param_hydro/$filename", '\t');
-    param_hydro = squeeze(param_hydro,2);
-
-    # Run model and filter
-
-    nens = 100;
-
-    q_res = run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, nens);
-
-    # Add results to dataframe
-
-    x_data = collect(1:size(q_res,1));
-    q_sim  = q_res[:, 1];
-    q_min  = q_res[:, 2];
-    q_max  = q_res[:, 3];
-
-    q_obs = round(q_obs, 2);
-    q_sim = round(q_sim, 2);
-    q_min = round(q_min, 2);
-    q_max = round(q_max, 2);
-
-    df_res = DataFrame(date = Dates.format(date,"yyyy-mm-dd"), q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
-
-    # Save results to txt file
-
-    file_save = dir_cur[1:end-5];
-
-    writetable(string(path_save, "/" * period * "_txt/", file_save, "_station.txt"), df_res, quotemark = '"', separator = '\t');
-
-    # Plot results
-
-    days_warmup = 3*365;
-
-    df_res = df_res[days_warmup:end, :];
-
-    R"""
-    library(zoo, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
-    library(hydroGOF, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
-    library(labeling, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
-    library(ggplot2, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
-    
-    df <- $df_res
-    df$date <- as.Date(df$date)
-    df$q_obs[df$q_obs == -999] <- NA
-    kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
-    nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
-    
-    plot_title <- paste('KGE = ', kge, ' NSE = ', nse, sep = '')
-    path_save <- $path_save
-    file_save <- $file_save
-    
-    p <- ggplot(df, aes(date))
-    p <- p + geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "deepskyblue1")
-    p <- p + geom_line(aes(y = q_obs), colour = "black", size = 1)
-    p <- p + geom_line(aes(y = q_sim), colour = "red", size = 0.5)
-    p <- p + theme_bw()
-    p <- p + labs(title = plot_title)
-    p <- p + labs(x = 'Date')
-    p <- p + labs(y = 'Discharge')
-    ggsave(file = paste(path_save,"/",$period,"_png/",file_save,"_pfilter.png", sep = ""), width = 30, height = 18, units = 'cm', dpi = 600)
-    """
-
-  end
-
-end
 
 ################################################################################
 
-# Run for calibration period
 
-period = "calib";
+# Model choices
 
-date_start = Date(2000,09,01);
-date_stop  = Date(2014,12,31);
+snow_choice = TinBasicType;
+hydro_choice = Gr4jType;
 
-run_em_all(path_inputs, path_save, path_param, period, date_start, date_stop);
+# Load data
 
-# Run for validation period
+path_inputs = Pkg.dir("Vann", "data_atnasjo");
 
-period = "valid";
+date, tair, prec, q_obs, frac = load_data(path_inputs);
 
-date_start = Date(1985,09,01);
-date_stop  = Date(2000,08,31);
+# Compute potential evapotranspiration
 
-run_em_all(path_inputs, path_save, path_param, period, date_start, date_stop);
+epot = epot_zero(date)
+
+# Initilize model
+
+st_snow = eval(Expr(:call, snow_choice, frac));
+st_hydro = eval(Expr(:call, hydro_choice, frac));
+
+# Run calibration
+
+param_opt = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs);
+
+param_snow = param_opt[1:length(st_snow.param)]
+param_hydro = param_opt[length(st_snow.param)+1:length(param_opt)]
+
+# Run model and filter
+
+nens = 100;
+
+q_res = run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, nens);
+
+# Add results to dataframe
+
+x_data = collect(1:size(q_res,1));
+q_sim  = q_res[:, 1];
+q_min  = q_res[:, 2];
+q_max  = q_res[:, 3];
+
+q_obs = round(q_obs, 2);
+q_sim = round(q_sim, 2);
+q_min = round(q_min, 2);
+q_max = round(q_max, 2);
+
+df_res = DataFrame(date = Dates.format(date,"yyyy-mm-dd"), q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max);
+
+# Plot results
+
+days_warmup = 3*365;
+
+df_res = df_res[days_warmup:end, :];
+
+R"""
+library(zoo, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
+library(hydroGOF, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
+library(labeling, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
+library(ggplot2, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
+    
+df <- $df_res
+df$date <- as.Date(df$date)
+df$q_obs[df$q_obs == -999] <- NA
+
+kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
+nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
+    
+plot_title <- paste('KGE = ', kge, ' NSE = ', nse, sep = '')
+
+p <- ggplot(df, aes(date))
+p <- p + geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "deepskyblue1")
+p <- p + geom_line(aes(y = q_obs), colour = "black", size = 1)
+p <- p + geom_line(aes(y = q_sim), colour = "red", size = 0.5)
+p <- p + theme_bw()
+p <- p + labs(title = plot_title)
+p <- p + labs(x = 'Date')
+p <- p + labs(y = 'Discharge')
+"""
