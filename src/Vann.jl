@@ -1,9 +1,6 @@
 module Vann
 
-# using BlackBoxOptim
-if is_windows()
-	using NLopt
-end
+using BlackBoxOptim
 using Distributions
 
 abstract HydroType

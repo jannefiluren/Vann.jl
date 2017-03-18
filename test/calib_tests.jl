@@ -1,6 +1,7 @@
 
 using Vann
-using NLopt
+using BlackBoxOptim
+
 
 ################################################################################
 
@@ -51,6 +52,7 @@ for iparam in eachindex(param)
 
 end
 
+
 ################################################################################
 
 # Test calibration of TinBasic and Gr4j
@@ -89,38 +91,41 @@ println("Finished test calibration of TinBasic and Gr4j")
 println(param)
 println(res)
 
-# for iparam in eachindex(param)
-#
-#   range_param = param_range[iparam][2] - param_range[iparam][1];
-#
-#   if !(param[iparam]-0.25*range_param < res[iparam] < param[iparam]+0.25*range_param)
-#     error("Calibration of gr4j + snow resulted in wrong parameter values")
-#   end
-#
-# end
+for iparam in eachindex(param)
 
-################################################################################
+  range_param = param_range[iparam][2] - param_range[iparam][1];
 
-# Test calibration of TinStandard and Gr4j
+  if !(param[iparam]-0.25*range_param < res[iparam] < param[iparam]+0.25*range_param)
+    error("Calibration of gr4j + snow resulted in wrong parameter values")
+  end
 
-# Load data
+end
 
-filename = joinpath(dirname(@__FILE__), "../data_atnasjo")
 
-date, tair, prec, q_obs, frac = load_data(filename, "Q_ref.txt")
 
-# Compute potential evapotranspiration
 
-epot = epot_zero(date)
+# ################################################################################
 
-# Select model
+# # Test calibration of TinStandard and Gr4j
 
-st_snow = TinStandardType(frac)
-st_hydro = Gr4jType(frac)
+# # Load data
 
-# Run calibration
+# filename = joinpath(dirname(@__FILE__), "../data_atnasjo")
 
-res = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs)
+# date, tair, prec, q_obs, frac = load_data(filename, "Q_ref.txt")
 
-println("Finished test calibration of TinStandard and Gr4j")
-println(res)
+# # Compute potential evapotranspiration
+
+# epot = epot_zero(date)
+
+# # Select model
+
+# st_snow = TinStandardType(frac)
+# st_hydro = Gr4jType(frac)
+
+# # Run calibration
+
+# res = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs)
+
+# println("Finished test calibration of TinStandard and Gr4j")
+# println(res)

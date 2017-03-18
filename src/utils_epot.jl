@@ -1,5 +1,10 @@
-# Use montly average values for potential evapotranspiration.
-# See report "The nordic HBV model" by Nils Roar Sælthun.
+"""
+    epot_monthly(datevec)
+
+Use montly average values for potential evapotranspiration.
+See report "The nordic HBV model" by Nils Roar Saelthun.
+
+"""
 
 function epot_monthly(datevec)
 
@@ -23,7 +28,13 @@ function epot_monthly(datevec)
 
 end
 
-# Set potential evapotranspiration to zero
+
+"""
+    epot_zero(datevec)
+
+Set potential evapotranspiration to zero.
+
+"""
 
 function epot_zero(datevec)
 
