@@ -5,7 +5,9 @@ makedocs(
   sitename = "Vann.jl",
   authors = "Jan Magnusson",
   pages = [
-    "Home" => "index.md"
+      "Home" => "index.md",
+      "Hydrological models" => "hyd_models.md",
+      "Data assimilation" => "data_assim.md"
   ]
 )
 
