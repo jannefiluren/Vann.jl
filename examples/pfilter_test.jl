@@ -1,10 +1,11 @@
 # Add packages
 
-using RCall
-using Distributions
-using DataFrames
 using Vann
 using DataAssim
+using PyPlot
+using Distributions
+using DataFrames
+
 
 
 # Perturb input data for snow model
@@ -31,7 +32,7 @@ end
 
 # Particle filter
 
-function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npart)
+function run_filter(st_snow, st_hydro, prec, tair, epot, q_obs, npart)
 
     srand(1);
 
@@ -42,13 +43,9 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
 
     # Initilize state variables
 
-    st_snow  = [TinBasicType(param_snow, frac) for i in 1:npart];
-    st_hydro = [Gr4jType(param_hydro, frac) for i in 1:npart];
-
-    for i in eachindex(st_snow)
-        st_hydro[i].st = zeros(Float64, 2);
-    end
-
+    st_snow  = [deepcopy(st_snow) for i in 1:npart];
+    st_hydro = [deepcopy(st_hydro) for i in 1:npart];
+    
     # Initilize particles
 
     wk = ones(npart) / npart;
@@ -119,47 +116,57 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
 
 end
 
+# Model choices
+
+snow_choice = TinStandardType;
+hydro_choice = HbvType;
 
 # Read data
 
-date, tair, prec, q_obs, frac = load_data("../data_atnasjo");
+path_inputs = Pkg.dir("Vann", "data_atnasjo");
+
+date, tair, prec, q_obs, frac = load_data(path_inputs);
 
 # Compute potential evapotranspiration
 
 epot = epot_zero(date);
 
-# Parameters
+# Initilize model
 
-param_snow  = [-0.350484, 1.0, 0.7082];
-param_hydro = [1.0, 4.29214, 125.103, 1.26226];
+st_snow = eval(Expr(:call, snow_choice, frac));
+st_hydro = eval(Expr(:call, hydro_choice, frac));
 
-# Run model
+# Run calibration
+
+param_opt = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs);
+
+# Reinitilize model
+
+param_snow  = param_opt[1:length(st_snow.param)]
+param_hydro = param_opt[length(st_snow.param)+1:end]
+
+st_snow = eval(Expr(:call, snow_choice, param_snow, frac));
+st_hydro = eval(Expr(:call, hydro_choice, param_hydro, frac));
+
+# Run particle filter
 
 npart = 3000;
 
-q_res = run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npart);
+q_res = run_filter(st_snow, st_hydro, prec, tair, epot, q_obs, npart)
 
 # Plot results
 
-x_data = collect(1:size(q_res,1));
 q_mean = q_res[:, 1];
 q_min  = q_res[:, 2];
 q_max  = q_res[:, 3];
 
-df_res = DataFrame(date = Dates.format(date, "yyyy-mm-dd"), q_obs = q_obs, q_mean = q_mean, q_min = q_min, q_max = q_max);
+df_res = DataFrame(date = date, q_obs = q_obs, q_mean = q_mean, q_min = q_min, q_max = q_max);
 
-R"""
-library(labeling, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
-library(ggplot2, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
+fig = plt[:figure](figsize = (12,7))
 
-df <- $df_res
-df$date <- as.Date(df$date)
+plt[:style][:use]("ggplot")
 
-p <- ggplot(df, aes(date))
-p <- p + geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "blue")
-p <- p + geom_line(aes(y = q_obs), colour = "black", size = 1)
-p <- p + geom_line(aes(y = q_mean), colour = "red", size = 0.5)
-p <- p + theme_bw()
-"""
-
+plt[:plot](df_res[:date], df_res[:q_obs], linewidth = 1.2, color = "k", label = "Observed", zorder = 1)
+plt[:fill_between](df_res[:date], df_res[:q_max], df_res[:q_min], facecolor = "r", edgecolor = "r", label = "Simulated", alpha = 0.55, zorder = 2)
+plt[:legend]()
 
