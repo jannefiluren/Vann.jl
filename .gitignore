@@ -2,3 +2,5 @@
 *.jl.*.cov
 *.jl.mem
 /notebooks/.ipynb_checkpoints/*.*
+docs/build/
+docs/site/
