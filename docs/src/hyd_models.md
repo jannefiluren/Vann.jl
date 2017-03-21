@@ -38,3 +38,35 @@ hydro_model(mdata::Gr4j)
 ```
 
 ## HBV
+
+For details about this model, see the following publication:
+
+*Seibert, J., and M. J. P. Vis (2012), Teaching hydrological modeling with a
+user-friendly catchment-runoff-model software package, Hydrol.Earth Syst. Sci.,
+16(9), 3315–3325.*
+
+```@docs
+Hbv
+```
+
+The following constructors are available for generating the types:
+
+```@docs
+Hbv(tstep)
+Hbv(tstep, param)
+```
+
+The following functions are mainly used during the calibration of the model:
+
+```@docs
+init_states(mdata::Hbv)
+get_param_range(mdata::Hbv)
+assign_param(mdata::Hbv, param::Array{Float64,1})
+```
+
+The models are written in state-space form. Calling the function below runs the
+model for one time step.
+
+```@docs
+hydro_model(mdata::Hbv)
+```

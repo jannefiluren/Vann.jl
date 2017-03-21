@@ -55,7 +55,6 @@ end
 """
     Gr4j(tstep, param)
 
-
 Constructor for GR4J with predefined state variables and inputs. The parameter
 values are given as input. The time step (tstep) is given as a fraction of one
 day. Thus, for hourly input data tstep should be set to 1/24.

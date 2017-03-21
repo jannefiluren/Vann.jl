@@ -1,5 +1,9 @@
+
+
 """
-Type definition for HBV model.
+The Hbv type contains the state variables (sm, suz, slz, st_uh), the inputs
+(epot, infilt) for one time step, the parameters (param) and the time step
+length (tstep) for the HBV model.
 """
 type Hbv <: Hydro
 
@@ -16,8 +20,13 @@ type Hbv <: Hydro
 end
 
 
-# Outer constructors
+"""
+    Hbv(tstep)
 
+Constructor for HBV with predefined state variables, parameters and inputs.
+The time step (tstep) is given as a fraction of one day. Thus, for hourly input
+data tstep should be set to 1/24.
+"""
 function Hbv(tstep)
 
   # Parameters: fc, lp, k0, k1, k2, beta, perc, ulz, maxbas
@@ -44,6 +53,14 @@ function Hbv(tstep)
 
 end
 
+
+"""
+    Hbv(tstep, param)
+
+Constructor for HBV with predefined state variables and inputs. The parameter
+values are given as input. The time step (tstep) is given as a fraction of one
+day. Thus, for hourly input data tstep should be set to 1/24.
+"""
 function Hbv(tstep, param)
 
   # Unit hydrograph ordinates
@@ -67,23 +84,11 @@ function Hbv(tstep, param)
 end
 
 
-# Parameter ranges for calibration
+"""
+    init_states(mdata::Hbv)
 
-function get_param_range(mdata::Hbv)
-
-  param_range_hydro = [(1., 1000.),      # fc
-                       (0.5, 0.99),      # lp
-                       (0.001, 0.999),   # k0
-                       (0.001, 0.999),   # k1
-                       (0.001, 0.999),   # k2
-                       (1., 5.),         # beta
-                       (0.1, 1000.),     # perc
-                       (1., 1000.),      # ulz
-                       (1., 20.)]       # maxbas
-
-end
-
-
+Initilize the state variables of the model.
+"""
 # Initilize state variables
 
 function init_states(mdata::Hbv)
@@ -99,8 +104,31 @@ function init_states(mdata::Hbv)
 end
 
 
-# Assign parameter values
+"""
+    get_param_range(mdata::Hbv)
 
+Get allowed parameter ranges for the calibration of the model.
+"""
+function get_param_range(mdata::Hbv)
+
+  param_range_hydro = [(1., 1000.),      # fc
+                       (0.5, 0.99),      # lp
+                       (0.001, 0.999),   # k0
+                       (0.001, 0.999),   # k1
+                       (0.001, 0.999),   # k2
+                       (1., 5.),         # beta
+                       (0.1, 1000.),     # perc
+                       (1., 1000.),      # ulz
+                       (1., 20.)]       # maxbas
+
+end
+
+
+"""
+    assign_param(mdata::Hbv, param::Array{Float64,1})
+
+Assign parameter values to the Hbv type.
+"""
 function assign_param(mdata::Hbv, param::Array{Float64,1})
 
   for i in eachindex(mdata.param)
@@ -113,25 +141,11 @@ function assign_param(mdata::Hbv, param::Array{Float64,1})
 end
 
 
-# Function for computing ordinates of unit hydrograph
+"""
+    hydro_model(mdata::Hbv)
 
-function compute_hbv_ord(maxbas, tstep)
-
-  maxbas = maxbas / tstep
-
-  triang = Distributions.TriangularDist(0, maxbas)
-
-  triang_cdf = Distributions.cdf(triang, 0:ceil(Int64, maxbas + 2))
-
-  hbv_ord = diff(triang_cdf)
-
-  return(hbv_ord)
-
-end
-
-
-# Function for HBV model
-
+Propagate the model one time step and return simulated dischage.
+"""
 function hydro_model(mdata::Hbv)
 
   # mdata and parameters
@@ -266,5 +280,21 @@ function hydro_model(mdata::Hbv)
   # Return discharge
 
   return(q_tot)
+
+end
+
+# Function for computing ordinates of unit hydrograph
+
+function compute_hbv_ord(maxbas, tstep)
+
+  maxbas = maxbas / tstep
+
+  triang = Distributions.TriangularDist(0, maxbas)
+
+  triang_cdf = Distributions.cdf(triang, 0:ceil(Int64, maxbas + 2))
+
+  hbv_ord = diff(triang_cdf)
+
+  return(hbv_ord)
 
 end
