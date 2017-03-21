@@ -121,11 +121,67 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "hyd_models.html#Vann.Hbv",
+    "page": "Hydrological models",
+    "title": "Vann.Hbv",
+    "category": "Type",
+    "text": "The Hbv type contains the state variables (sm, suz, slz, st_uh), the inputs (epot, infilt) for one time step, the parameters (param) and the time step length (tstep) for the HBV model.\n\n\n\n"
+},
+
+{
+    "location": "hyd_models.html#Vann.Hbv-Tuple{Any}",
+    "page": "Hydrological models",
+    "title": "Vann.Hbv",
+    "category": "Method",
+    "text": "Hbv(tstep)\n\nConstructor for HBV with predefined state variables, parameters and inputs. The time step (tstep) is given as a fraction of one day. Thus, for hourly input data tstep should be set to 1/24.\n\n\n\n"
+},
+
+{
+    "location": "hyd_models.html#Vann.Hbv-Tuple{Any,Any}",
+    "page": "Hydrological models",
+    "title": "Vann.Hbv",
+    "category": "Method",
+    "text": "Hbv(tstep, param)\n\nConstructor for HBV with predefined state variables and inputs. The parameter values are given as input. The time step (tstep) is given as a fraction of one day. Thus, for hourly input data tstep should be set to 1/24.\n\n\n\n"
+},
+
+{
+    "location": "hyd_models.html#Vann.init_states-Tuple{Vann.Hbv}",
+    "page": "Hydrological models",
+    "title": "Vann.init_states",
+    "category": "Method",
+    "text": "init_states(mdata::Hbv)\n\nInitilize the state variables of the model.\n\n\n\n"
+},
+
+{
+    "location": "hyd_models.html#Vann.get_param_range-Tuple{Vann.Hbv}",
+    "page": "Hydrological models",
+    "title": "Vann.get_param_range",
+    "category": "Method",
+    "text": "get_param_range(mdata::Hbv)\n\nGet allowed parameter ranges for the calibration of the model.\n\n\n\n"
+},
+
+{
+    "location": "hyd_models.html#Vann.assign_param-Tuple{Vann.Hbv,Array{Float64,1}}",
+    "page": "Hydrological models",
+    "title": "Vann.assign_param",
+    "category": "Method",
+    "text": "assign_param(mdata::Hbv, param::Array{Float64,1})\n\nAssign parameter values to the Hbv type.\n\n\n\n"
+},
+
+{
+    "location": "hyd_models.html#Vann.hydro_model-Tuple{Vann.Hbv}",
+    "page": "Hydrological models",
+    "title": "Vann.hydro_model",
+    "category": "Method",
+    "text": "hydro_model(mdata::Hbv)\n\nPropagate the model one time step and return simulated dischage.\n\n\n\n"
+},
+
+{
     "location": "hyd_models.html#HBV-1",
     "page": "Hydrological models",
     "title": "HBV",
     "category": "section",
-    "text": ""
+    "text": "For details about this model, see the following publication:Seibert, J., and M. J. P. Vis (2012), Teaching hydrological modeling with a user-friendly catchment-runoff-model software package, Hydrol.Earth Syst. Sci., 16(9), 3315–3325.HbvThe following constructors are available for generating the types:Hbv(tstep)\nHbv(tstep, param)The following functions are mainly used during the calibration of the model:init_states(mdata::Hbv)\nget_param_range(mdata::Hbv)\nassign_param(mdata::Hbv, param::Array{Float64,1})The models are written in state-space form. Calling the function below runs the model for one time step.hydro_model(mdata::Hbv)"
 },
 
 {
