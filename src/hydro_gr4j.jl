@@ -1,9 +1,10 @@
 
 
 """
-Gr4j represents the states, parameters and inputs to the GR4J model.
+The Gr4j type contains the state variables (st, st_uh1, st_uh2), the inputs
+(epot, infilt) for one time step, the parameters (param) and the time step
+length (tstep) for the GR4J model.
 """
-
 type Gr4j <: Hydro
 
   st::Array{Float64,1}
@@ -22,9 +23,10 @@ end
 """
     Gr4j(tstep)
 
-Construct a Gr4j type with states, parameters and inputs preset.
+Constructor for GR4J with predefined state variables, parameters and inputs.
+The time step (tstep) is given as a fraction of one day. Thus, for hourly input
+data tstep should be set to 1/24.
 """
-
 function Gr4j(tstep)
 
   n_ord = ceil(Int64, 20.0 / tstep)
@@ -54,9 +56,10 @@ end
     Gr4j(tstep, param)
 
 
-Construct a Gr4j type with parameters as input.
+Constructor for GR4J with predefined state variables and inputs. The parameter
+values are given as input. The time step (tstep) is given as a fraction of one
+day. Thus, for hourly input data tstep should be set to 1/24.
 """
-
 function Gr4j(tstep, param)
 
   n_ord = ceil(Int64, 20.0 / tstep)
@@ -82,24 +85,10 @@ end
 
 
 """
-    get_param_range(mdata::Gr4j)
-
-Get parameter ranges for calibration for the GR4J model.
-"""
-
-function get_param_range(mdata::Gr4j)
-
-  param_range_hydro = [(1.0, 1000.0), (-10.0, 10.0), (1.0, 500.0), (0.5, 10.0)]
-
-end
-
-
-"""
     init_states(mdata::Gr4j)
 
-Initilize state variables for the GR4J model.
+Initilize the state variables of the model.
 """
-
 function init_states(mdata::Gr4j)
 
   mdata.st[1] = 0.3 * mdata.param[1]
@@ -117,11 +106,22 @@ end
 
 
 """
+    get_param_range(mdata::Gr4j)
+
+Get allowed parameter ranges for the calibration of the model.
+"""
+function get_param_range(mdata::Gr4j)
+
+  param_range_hydro = [(1.0, 1000.0), (-10.0, 10.0), (1.0, 500.0), (0.5, 10.0)]
+
+end
+
+
+"""
     assign_param(mdata::Gr4j, param::Array{Float64,1})
 
-# Assign parameter values for GR4J model.
+Assign parameter values to the Gr4j type.
 """
-
 function assign_param(mdata::Gr4j, param::Array{Float64,1})
 
   for i in eachindex(mdata.param)
@@ -137,9 +137,8 @@ end
 """
     hydro_model(mdata::Gr4j)
 
-Run one time step for the GR4J model.
+Propagate the model one time step and return simulated dischage.
 """
-
 function hydro_model(mdata::Gr4j)
 
   St     = mdata.st
@@ -335,7 +334,6 @@ function UH2(OrdUH2,C,D)
   end
 
 end
-
 
 
 #**********************************************************************
