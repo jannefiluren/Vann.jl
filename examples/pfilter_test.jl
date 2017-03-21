@@ -45,7 +45,7 @@ function run_filter(st_snow, st_hydro, prec, tair, epot, q_obs, npart)
 
     st_snow  = [deepcopy(st_snow) for i in 1:npart];
     st_hydro = [deepcopy(st_hydro) for i in 1:npart];
-    
+
     # Initilize particles
 
     wk = ones(npart) / npart;
@@ -118,8 +118,8 @@ end
 
 # Model choices
 
-snow_choice = TinStandardType;
-hydro_choice = HbvType;
+snow_choice = TinStandard;
+hydro_choice = Hbv;
 
 # Read data
 
@@ -134,19 +134,16 @@ epot = epot_zero(date);
 # Initilize model
 
 st_snow = eval(Expr(:call, snow_choice, frac));
-st_hydro = eval(Expr(:call, hydro_choice, frac));
+st_hydro = eval(Expr(:call, hydro_choice));
 
 # Run calibration
 
-param_opt = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs);
+param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs);
 
 # Reinitilize model
 
-param_snow  = param_opt[1:length(st_snow.param)]
-param_hydro = param_opt[length(st_snow.param)+1:end]
-
 st_snow = eval(Expr(:call, snow_choice, param_snow, frac));
-st_hydro = eval(Expr(:call, hydro_choice, param_hydro, frac));
+st_hydro = eval(Expr(:call, hydro_choice, param_hydro));
 
 # Run particle filter
 
@@ -169,4 +166,3 @@ plt[:style][:use]("ggplot")
 plt[:plot](df_res[:date], df_res[:q_obs], linewidth = 1.2, color = "k", label = "Observed", zorder = 1)
 plt[:fill_between](df_res[:date], df_res[:q_max], df_res[:q_min], facecolor = "r", edgecolor = "r", label = "Simulated", alpha = 0.55, zorder = 2)
 plt[:legend]()
-

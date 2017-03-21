@@ -2,66 +2,69 @@
 
 # Type definitions
 
-type TinBasicType <: SnowType
+type TinBasic <: Snow
+
   prec::Array{Float64,1}
   tair::Array{Float64,1}
   swe::Array{Float64,1}
   infilt::Float64
   param::Array{Float64,1}
   frac::Array{Float64,1}
+  tstep::Float64
+
 end
 
 # Outer constructors
 
-function TinBasicType(frac)
+function TinBasic(tstep, frac)
 
-  nzones = length(frac);
-  prec   = zeros(Float64, nzones);
-  tair   = zeros(Float64, nzones);
-  swe    = zeros(Float64, nzones);
-  infilt = 0.0;
-  param  = [0.0, 3.0, 1.0];
+  nzones = length(frac)
+  prec   = zeros(Float64, nzones)
+  tair   = zeros(Float64, nzones)
+  swe    = zeros(Float64, nzones)
+  infilt = 0.0
+  param  = [0.0, 3.0, 1.0]
 
-  TinBasicType(swe, prec, tair, infilt, param, frac);
+  TinBasic(prec, tair, swe, infilt, param, frac, tstep)
 
 end
 
-function TinBasicType(param, frac)
+function TinBasic(tstep, param, frac)
 
-  nzones = length(frac);
-  prec   = zeros(Float64, nzones);
-  tair   = zeros(Float64, nzones);
-  swe    = zeros(Float64, nzones);
-  infilt = 0.0;
+  nzones = length(frac)
+  prec   = zeros(Float64, nzones)
+  tair   = zeros(Float64, nzones)
+  swe    = zeros(Float64, nzones)
+  infilt = 0.0
 
-  TinBasicType(swe, prec, tair, infilt, param, frac);
+  TinBasic(prec, tair, swe, infilt, param, frac, tstep)
 
 end
 
 # Parameter ranges for calibration
 
-function get_param_range(States::TinBasicType)
+function get_param_range(mdata::TinBasic)
 
-  param_range_snow = [(-0.5, 0.5), (1.0, 8.0), (0.5, 2.0)];
+  param_range_snow = [(-0.5, 0.5), (1.0, 8.0), (0.5, 2.0)]
 
 end
 
 # Initilize state variables
 
-function init_states(States::TinBasicType)
+function init_states(mdata::TinBasic)
 
-  for i in eachindex(States.swe)
-    States.swe[i] = 0.;
+  for i in eachindex(mdata.swe)
+    mdata.swe[i] = 0.
   end
 
 end
 
 # Assign parameter values
 
-function assign_param(States::TinBasicType, param::Array{Float64,1})
+function assign_param(mdata::TinBasic, param::Array{Float64,1})
 
-  for i in eachindex(States.param)
-    States.param[i] = param[i];
+  for i in eachindex(mdata.param)
+    mdata.param[i] = param[i]
   end
 
 end
@@ -70,39 +73,39 @@ end
 
 # Temperature index snow model
 
-function snow_model(States::TinBasicType)
+function snow_model(mdata::TinBasic)
 
-  # parameters
+  # Parameters
 
-  tth   = States.param[1];
-  ddf   = States.param[2];
-  pcorr = States.param[3];
+  tth   = mdata.param[1]
+  ddf   = mdata.param[2] * mdata.tstep
+  pcorr = mdata.param[3]
 
-  States.infilt = 0.0;
+  mdata.infilt = 0.0
 
-  for i in eachindex(States.swe)
+  for i in eachindex(mdata.swe)
 
     # Compute solid and liquid precipitation
 
-    psolid  = States.prec[i] * pcorr;
-    pliquid = States.prec[i] * pcorr;
+    psolid  = mdata.prec[i] * pcorr
+    pliquid = mdata.prec[i] * pcorr
 
-    States.tair[i] > tth ? psolid = 0.0 : pliquid = 0.0;
+    mdata.tair[i] > tth ? psolid = 0.0 : pliquid = 0.0
 
     # Compute snow melt
 
-    States.tair[i] < tth ? M = 0.0 : M = ddf * States.tair[i];
+    mdata.tair[i] < tth ? M = 0.0 : M = ddf * mdata.tair[i]
 
-    M = min(States.swe[i],M);
+    M = min(mdata.swe[i],M)
 
     # Update snow water equivalents
 
-    States.swe[i] += psolid;
-    States.swe[i] -= M;
+    mdata.swe[i] += psolid
+    mdata.swe[i] -= M
 
     # Compute infiltration
 
-    States.infilt += States.frac[i]*(M + pliquid)
+    mdata.infilt += mdata.frac[i]*(M + pliquid)
 
   end
 

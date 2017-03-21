@@ -1,8 +1,7 @@
-
-
-# Type definitions
-
-type HbvType <: HydroType
+"""
+Type definition for HBV model.
+"""
+type Hbv <: Hydro
 
   sm::Float64
   suz::Float64
@@ -12,57 +11,65 @@ type HbvType <: HydroType
   epot::Float64
   infilt::Float64
   param::Array{Float64,1}
-  frac::Array{Float64,1}
+  tstep::Float64
 
 end
 
 
 # Outer constructors
 
-function HbvType(frac)
+function Hbv(tstep)
 
-  nzones  = length(frac);
+  # Parameters: fc, lp, k0, k1, k2, beta, perc, ulz, maxbas
 
-  sm      = 0.;
-  suz     = 0.;
-  slz     = 0.;
-  st_uh   = zeros(Float64, 20);
+  param = [100., 0.8, 0.05, 0.05, 0.01, 1., 2., 30., 2.5]
 
-  epot   = 0.0;
-  infilt = 0.0;
+  # Unit hydrograph ordinates
 
-  # fc, lp, k0, k1, k2, beta, perc, ulz, maxbas
+  hbv_ord = compute_hbv_ord(param[9], tstep)
 
-  param = [100., 0.8, 0.05, 0.05, 0.01, 1., 2., 30., 2.5];
+  # States
 
-  hbv_ord = compute_hbv_ord(param[9]);
+  sm      = 0.
+  suz     = 0.
+  slz     = 0.
+  st_uh   = zeros(Float64, length(hbv_ord))
 
-  HbvType(sm, suz, slz, st_uh, hbv_ord, epot, infilt, param, frac);
+  # Inputs
+
+  epot   = 0.0
+  infilt = 0.0
+
+  Hbv(sm, suz, slz, st_uh, hbv_ord, epot, infilt, param, tstep)
 
 end
 
-function HbvType(param, frac)
+function Hbv(tstep, param)
 
-  nzones  = length(frac);
+  # Unit hydrograph ordinates
 
-  sm      = 0.;
-  suz     = 0.;
-  slz     = 0.;
-  st_uh   = zeros(Float64, 20);
+  hbv_ord = compute_hbv_ord(param[9], tstep)
 
-  epot   = 0.0;
-  infilt = 0.0;
+  # States
 
-  hbv_ord = compute_hbv_ord(param[9]);
+  sm      = 0.
+  suz     = 0.
+  slz     = 0.
+  st_uh   = zeros(Float64, length(hbv_ord))
 
-  HbvType(sm, suz, slz, st_uh, hbv_ord, epot, infilt, param, frac);
+  # Inputs
+
+  epot   = 0.0
+  infilt = 0.0
+
+  Hbv(sm, suz, slz, st_uh, hbv_ord, epot, infilt, param, tstep)
 
 end
 
 
 # Parameter ranges for calibration
 
-function get_param_range(States::HbvType)
+function get_param_range(mdata::Hbv)
 
   param_range_hydro = [(1., 1000.),      # fc
                        (0.5, 0.99),      # lp
@@ -72,21 +79,21 @@ function get_param_range(States::HbvType)
                        (1., 5.),         # beta
                        (0.1, 1000.),     # perc
                        (1., 1000.),      # ulz
-                       (1., 20.)];       # maxbas
+                       (1., 20.)]       # maxbas
 
 end
 
 
 # Initilize state variables
 
-function init_states(States::HbvType)
+function init_states(mdata::Hbv)
 
-  States.sm      = 0.;
-  States.suz     = 0.;
-  States.slz     = 0.;
+  mdata.sm      = 0.
+  mdata.suz     = 0.
+  mdata.slz     = 0.
 
-  for i in eachindex(States.st_uh)
-    States.st_uh[i] = 0.;
+  for i in eachindex(mdata.st_uh)
+    mdata.st_uh[i] = 0.
   end
 
 end
@@ -94,60 +101,63 @@ end
 
 # Assign parameter values
 
-function assign_param(States::HbvType, param::Array{Float64,1})
+function assign_param(mdata::Hbv, param::Array{Float64,1})
 
-  for i in eachindex(States.param)
-    States.param[i] = param[i];
+  for i in eachindex(mdata.param)
+    mdata.param[i] = param[i]
   end
 
-  States.hbv_ord = compute_hbv_ord(param[9]);
+  mdata.hbv_ord = compute_hbv_ord(param[9], mdata.tstep)
+  mdata.st_uh   = zeros(Float64, length(mdata.hbv_ord))
 
 end
 
 
 # Function for computing ordinates of unit hydrograph
 
-function compute_hbv_ord(maxbas)
+function compute_hbv_ord(maxbas, tstep)
 
-  triang = Distributions.TriangularDist(0, maxbas);
+  maxbas = maxbas / tstep
 
-  triang_cdf = Distributions.cdf(triang, 0:20);
+  triang = Distributions.TriangularDist(0, maxbas)
 
-  hbv_ord = diff(triang_cdf);
+  triang_cdf = Distributions.cdf(triang, 0:ceil(Int64, maxbas + 2))
 
-  return(hbv_ord);
+  hbv_ord = diff(triang_cdf)
+
+  return(hbv_ord)
 
 end
 
 
 # Function for HBV model
 
-function hydro_model(States::HbvType)
+function hydro_model(mdata::Hbv)
 
-  # States and parameters
+  # mdata and parameters
 
-  sm = States.sm;
-  suz = States.suz;
-  slz = States.slz;
-  st_uh = States.st_uh;
-  hbv_ord = States.hbv_ord;
-  epot = States.epot;
-  infilt = States.infilt;
+  sm = mdata.sm
+  suz = mdata.suz
+  slz = mdata.slz
+  st_uh = mdata.st_uh
+  hbv_ord = mdata.hbv_ord
+  epot = mdata.epot
+  infilt = mdata.infilt
 
-  fc     = States.param[1];
-  lp     = States.param[2];
-  k0     = States.param[3];
-  k1     = States.param[4];
-  k2     = States.param[5];
-  beta   = States.param[6];
-  perc   = States.param[7];
-  ulz    = States.param[8];
-  maxbas = States.param[9];
+  fc     = mdata.param[1]
+  lp     = mdata.param[2]
+  k0     = mdata.param[3]
+  k1     = mdata.param[4]
+  k2     = mdata.param[5]
+  beta   = mdata.param[6]
+  perc   = mdata.param[7] * mdata.tstep
+  ulz    = mdata.param[8]
+  maxbas = mdata.param[9]
 
   # Input for current time step
 
-  prec_now = infilt;
-  epot_now = epot;
+  prec_now = infilt
+  epot_now = epot
 
   # Soil moisture zone (assume no evaporation during rainfall)
 
@@ -155,26 +165,26 @@ function hydro_model(States::HbvType)
 
     # Beta function
 
-    f_recharge = (sm / fc) ^ beta;
+    f_recharge = (sm / fc) ^ beta
 
     # Groundwater recharge
 
-    recharge = f_recharge * prec_now;
+    recharge = f_recharge * prec_now
 
     # Update soil moisture zone
 
-    sm = sm + prec_now - recharge;
+    sm = sm + prec_now - recharge
 
     # Add excess soil moisture to groundwater recharge
 
     if sm > fc
-      recharge += sm - fc;
-      sm = fc;
+      recharge += sm - fc
+      sm = fc
     end
 
     # No evapotranspiration
 
-    eact = 0.;
+    eact = 0.
 
   else
 
@@ -184,77 +194,77 @@ function hydro_model(States::HbvType)
 
     # Update soil moisture zone
 
-    sm = sm - eact;
+    sm = sm - eact
 
     # Check limits for soil moisture zone
 
     if sm < 0.
-      eact = max(eact + sm, 0.);
-      sm = 0.;
+      eact = max(eact + sm, 0.)
+      sm = 0.
     end
 
     # No groundwater recharge
 
-    recharge = 0.;
+    recharge = 0.
 
   end
 
   # Add recharge to upper groundwater box
 
-  suz = suz + recharge;
+  suz = suz + recharge
 
   # Remove percolation from upper groundwater box
 
-  perc_now = min(perc, suz);
+  perc_now = min(perc, suz)
 
-  suz = suz - perc_now;
+  suz = suz - perc_now
 
   # Compute runoff from upper groundwater box and update storage
 
-  q_suz = k1 * suz + k0 * max(suz-ulz, 0.);
+  q_suz = k1 * suz + k0 * max(suz-ulz, 0.)
 
-  suz = suz - q_suz;
+  suz = suz - q_suz
 
   if suz < 0.
-    q_suz = max(q_suz + suz, 0.);
-    suz = 0.;
+    q_suz = max(q_suz + suz, 0.)
+    suz = 0.
   end
 
   # Add precolation to lower groundwater box
 
-  slz = slz + perc_now;
+  slz = slz + perc_now
 
   # Compute runoff from lower groundwater box and update storage
 
-  q_slz = k2 * slz;
+  q_slz = k2 * slz
 
-  slz = slz - q_slz;
+  slz = slz - q_slz
 
   # Convolution of unit hydrograph
 
-  q_tmp = q_suz + q_slz;
+  q_tmp = q_suz + q_slz
 
-  nh = length(hbv_ord);
+  nh = length(hbv_ord)
 
   for k = 1:nh-1
-    st_uh[k] = st_uh[k+1] + hbv_ord[k]*q_tmp;
+    st_uh[k] = st_uh[k+1] + hbv_ord[k]*q_tmp
   end
 
-  st_uh[nh] = hbv_ord[nh] * q_tmp;
+  st_uh[nh] = hbv_ord[nh] * q_tmp
 
   # Compute total runoff
 
-  q_tot = st_uh[1];
+  q_tot = st_uh[1]
 
   # Assign states
 
-  States.sm = sm;
-  States.suz = suz;
-  States.slz = slz;
-  States.st_uh = st_uh;
+  mdata.sm = sm
+  mdata.suz = suz
+  mdata.slz = slz
+  mdata.st_uh = st_uh
 
   # Return discharge
 
-  return(q_tot);
+  return(q_tot)
 
 end

@@ -81,13 +81,13 @@ end
 
 """
 
-    run_model_calib(st_hydro::HydroType, prec, epot, q_obs)
+    run_model_calib(st_hydro::Hydro, prec, epot, q_obs)
 
-Run calibration of hydrological routing model.
+Run calibration of hydrological routing model, for example HBV.
 
 """
 
-function run_model_calib(st_hydro::HydroType, prec, epot, q_obs)
+function run_model_calib(st_hydro::Hydro, prec, epot, q_obs)
 
     # Get parameter range
 
@@ -105,7 +105,9 @@ function run_model_calib(st_hydro::HydroType, prec, epot, q_obs)
 
     res = bboptimize(calib_wrapper_tmp; SearchRange = param_range)
 
-    res = best_candidate(res)
+    param_hydro = best_candidate(res)
+
+    return param_hydro
 
 end
 
@@ -113,13 +115,13 @@ end
 
 """
 
-    run_model_calib(st_snow::SnowType, st_hydro::HydroType, date, tair, prec, epot, q_obs)
+    run_model_calib(st_snow::Snow, st_hydro::Hydro, date, tair, prec, epot, q_obs)
 
 Run calibration of snow and hydrological routing model.
 
 """
 
-function run_model_calib(st_snow::SnowType, st_hydro::HydroType, date, tair, prec, epot, q_obs)
+function run_model_calib(st_snow::Snow, st_hydro::Hydro, date, tair, prec, epot, q_obs)
 
     # Get parameter range
 
@@ -140,7 +142,14 @@ function run_model_calib(st_snow::SnowType, st_hydro::HydroType, date, tair, pre
 
     res = bboptimize(calib_wrapper_tmp; SearchRange = param_range)
 
-    res = best_candidate(res)
+    # Extract parameters for snow and hydrological routing model
+
+    param = best_candidate(res)
+
+    param_snow = param[1:length(st_snow.param)]
+    param_hydro = param[length(st_snow.param)+1:end]
+
+    return param_snow, param_hydro
 
 end
 
@@ -250,7 +259,7 @@ end
 
 # # Run calibration
 
-# function run_model_calib(st_snow::SnowType, st_hydro::HydroType, date, tair, prec, epot, q_obs)
+# function run_model_calib(st_snow::Snow, st_hydro::Hydro, date, tair, prec, epot, q_obs)
 
 #   # Get parameter range
 
@@ -351,7 +360,7 @@ end
 
 # # Run calibration
 
-# function run_model_calib(st_hydro::HydroType, prec, epot, q_obs)
+# function run_model_calib(st_hydro::Hydro, prec, epot, q_obs)
 
 #   # Get parameter range
 

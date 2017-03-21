@@ -33,8 +33,10 @@ param_hydro = [74.59, 0.81, 214.98, 1.24]
 
 # Select model
 
-st_snow  = TinBasicType(param_snow, frac)
-st_hydro = Gr4jType(param_hydro, frac)
+step = 1.0
+
+st_snow  = TinBasic(step, param_snow, frac)
+st_hydro = Gr4j(step, param_hydro)
 
 q_sim = run_model(st_snow, st_hydro, date, tair, prec, epot)
 

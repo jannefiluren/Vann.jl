@@ -18,3 +18,9 @@ The package and so can be installed using:
 Pkg.clone("https://github.com/jmgnve/Vann.jl.git")
 ```
 
+## Input variables
+
+Input variables depending on the length of the time step, such as precipitation,
+should given in units *mm/timestep* For all models, the time step should be
+relative to daily inputs. Thus, if hourly input data is used, the model time
+step should equal 1/24.

@@ -6,8 +6,8 @@ using DataFrames
 
 # Model choices
 
-snow_choice = TinBasicType;
-hydro_choice = Gr4jType;
+snow_choice = TinBasic;
+hydro_choice = Gr4j;
 
 # Load data
 
@@ -21,22 +21,22 @@ epot = epot_zero(date)
 
 # Initilize model
 
-st_snow = eval(Expr(:call, snow_choice, frac));
-st_hydro = eval(Expr(:call, hydro_choice, frac));
+tstep = 1.0
+
+st_snow = eval(Expr(:call, snow_choice, tstep, frac));
+st_hydro = eval(Expr(:call, hydro_choice, tstep));
 
 # Run calibration
 
-param_opt = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs);
+param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs);
 
-println(param_opt)
+println(param_snow)
+println(param_hydro)
 
 # Reinitilize model
 
-param_snow  = param_opt[1:length(st_snow.param)]
-param_hydro = param_opt[length(st_snow.param)+1:end]
-
 st_snow = eval(Expr(:call, snow_choice, param_snow, frac));
-st_hydro = eval(Expr(:call, hydro_choice, param_hydro, frac));
+st_hydro = eval(Expr(:call, hydro_choice, param_hydro));
 
 # Run model with best parameter set
 
@@ -71,4 +71,3 @@ p <- p + labs(title = plot_title)
 p <- p + labs(x = 'Index')
 p <- p + labs(y = 'Discharge')
 """
-

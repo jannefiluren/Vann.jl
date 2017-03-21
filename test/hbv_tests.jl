@@ -17,9 +17,11 @@ frac = zeros(Float64, 1);
 
 param = [100., 0.8, 0.05, 0.05, 0.01, 1., 2., 30., 2.5];
 
+tstep = 1.0
+
 # Select model
 
-st_hbv = HbvType(param, frac);
+st_hbv = Hbv(tstep, param);
 
 # Run model
 
@@ -46,7 +48,9 @@ param_hydro = [100., 0.8, 0.05, 0.05, 0.01, 1., 2., 30., 2.5];
 
 # Select model
 
-st_snow  = TinBasicType(param_snow, frac);
-st_hydro = HbvType(param_hydro, frac);
+tstep = 1.0
+
+st_snow  = TinBasic(tstep, param_snow, frac);
+st_hydro = Hbv(tstep, param_hydro);
 
 q_sim = run_model(st_snow, st_hydro, date, tair, prec, epot);

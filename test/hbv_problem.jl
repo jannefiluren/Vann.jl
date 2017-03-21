@@ -8,18 +8,19 @@ using Vann
 
 # Some fake data
 
-frac = zeros(Float64, 1);
+frac = zeros(Float64, 1)
+tstep = 1.0
 
-# Create input for the model using the HbvType (see file hydro_hbv.jl)
+# Create input for the model using the Hbv (see file hydro_hbv.jl)
 
-st_hbv = HbvType(frac);
+st_hbv = Hbv(tstep)
 
 # Run the model for one step and measure time + memory
 
-hydro_model(st_hbv);
+hydro_model(st_hbv)
 
-@time hydro_model(st_hbv);
+@time hydro_model(st_hbv)
 
-@time hydro_model(st_hbv);
+@time hydro_model(st_hbv)
 
-@time hydro_model(st_hbv);
+@time hydro_model(st_hbv)

@@ -1,23 +1,16 @@
 # Hydrological model components
 
-*A Julia package for hydrological modelling.*
+## GR4J model
 
-## Potential evapotranspiration
+```@docs
+Gr4j
+Gr4j()
+Gr4j(param)
+get_param_range(mdata::Gr4j)
+init_states(mdata::Gr4j)
+assign_param(mdata::Gr4j, param::Array{Float64,1})
+hydro_model(mdata::Gr4j)
+```
 
-Zero potential evapotranspiration
+## HBV model
 
-Monthly potential evapotranspiration
-
-
-## Snow models
-
-Simple temperature index model
-
-Advanced temperature index model
-
-
-## Hydrological models
-
-Swedish hydrological model
-
-French hydrological model

@@ -1,24 +1,24 @@
 # Model wrapper for hydrological response model (e.g. Gr4j or HBV)
 
-function run_model(st_hydro::HydroType, prec, epot)
+function run_model(st_hydro::Hydro, prec, epot)
 
   # Number of time steps
 
-  ntimes = size(prec, 2);
+  ntimes = size(prec, 2)
 
   # Run model
 
-  q_sim = zeros(Float64, ntimes);
+  q_sim = zeros(Float64, ntimes)
 
   for itime in 1:ntimes
 
-    get_input(st_hydro, prec, epot, itime);
+    get_input(st_hydro, prec, epot, itime)
 
-    q_sim[itime] = hydro_model(st_hydro);
+    q_sim[itime] = hydro_model(st_hydro)
 
   end
 
-  return(q_sim);
+  return(q_sim)
 
 end
 
@@ -29,21 +29,21 @@ function run_model(st_snow, st_hydro, date, tair, prec, epot)
 
   # Number of time steps
 
-  ntimes = size(prec, 2);
+  ntimes = size(prec, 2)
 
   # Run model
 
-  q_sim = zeros(Float64, ntimes);
+  q_sim = zeros(Float64, ntimes)
 
   for itime in 1:ntimes
 
-    get_input(st_snow, prec, tair, date, itime);
+    get_input(st_snow, prec, tair, date, itime)
 
-    snow_model(st_snow);
+    snow_model(st_snow)
 
-    get_input(st_snow, st_hydro, epot, itime);
+    get_input(st_snow, st_hydro, epot, itime)
 
-    q_sim[itime] = hydro_model(st_hydro);
+    q_sim[itime] = hydro_model(st_hydro)
 
   end
 

@@ -66,8 +66,10 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
 
   # Initilize state variables
 
-  st_snow  = [TinBasicType(param_snow, frac) for i in 1:npart];
-  st_hydro = [Gr4jType(param_hydro, frac) for i in 1:npart];
+  tstep = 1.0
+
+  st_snow  = [TinBasic(tstep, param_snow, frac) for i in 1:npart];
+  st_hydro = [Gr4j(tstep, param_hydro) for i in 1:npart];
 
   for i in eachindex(st_snow)
     st_hydro[i].st = zeros(Float64, 2);

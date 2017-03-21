@@ -13,8 +13,8 @@ param_hydro = [100., 0.8, 0.15, 0.05, 0.01, 1., 2., 30., 2.5];
 
 # Select model
 
-st_snow  = Vann.TinBasicType(param_snow, frac);
-st_hydro = Vann.HbvType(param_hydro, frac);
+st_snow  = Vann.TinBasic(param_snow, frac);
+st_hydro = Vann.Hbv(param_hydro, frac);
 
 q_sim = Vann.run_model(st_snow, st_hydro, date, tair, prec);
 

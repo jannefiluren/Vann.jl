@@ -23,9 +23,11 @@ frac = zeros(Float64, 1)
 
 param  = [257.238, 1.012, 88.235, 2.208]
 
+tstep = 1.0
+
 # Select model
 
-st_gr4j = Gr4jType(param, frac);
+st_gr4j = Gr4j(tstep, param);
 
 # Run model
 
@@ -50,6 +52,8 @@ filename = joinpath(dirname(@__FILE__), "../data_atnasjo")
 
 date, tair, prec, q_obs, frac = load_data(filename, "Q_ref.txt")
 
+tstep = 1.0
+
 # Compute potential evapotranspiration
 
 epot = epot_zero(date)
@@ -61,8 +65,8 @@ param_hydro = [74.59, 0.81, 214.98, 1.24]
 
 # Select model
 
-st_snow  = TinBasicType(param_snow, frac)
-st_hydro = Gr4jType(param_hydro, frac)
+st_snow  = TinBasic(tstep, param_snow, frac)
+st_hydro = Gr4j(tstep, param_hydro)
 
 q_sim = run_model(st_snow, st_hydro, date, tair, prec, epot)
 
@@ -83,6 +87,8 @@ filename = joinpath(dirname(@__FILE__), "../data_atnasjo")
 
 date, tair, prec, q_obs, frac = load_data(filename, "Q_ref.txt")
 
+tstep = 1.0
+
 # Compute potential evapotranspiration
 
 epot = epot_zero(date)
@@ -94,8 +100,8 @@ param_hydro = [74.59, 0.81, 214.98, 1.24]
 
 # Select model
 
-st_snow  = TinStandardType(param_snow, frac)
-st_hydro = Gr4jType(param_hydro, frac)
+st_snow  = TinStandard(tstep, param_snow, frac)
+st_hydro = Gr4j(tstep, param_hydro)
 
 q_sim = run_model(st_snow, st_hydro, date, tair, prec, epot)
 

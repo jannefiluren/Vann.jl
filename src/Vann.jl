@@ -3,11 +3,11 @@ module Vann
 using BlackBoxOptim
 using Distributions
 
-abstract HydroType
-abstract SnowType
+abstract Hydro
+abstract Snow
 
-export HbvType, Gr4jType
-export TinBasicType, TinStandardType
+export Hbv, Gr4j
+export TinBasic, TinStandard
 
 export hydro_model, snow_model
 export load_data, crop_data

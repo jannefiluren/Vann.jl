@@ -19,8 +19,8 @@ if is_windows()
 end
 
 epot_choice = epot_monthly;
-snow_choice = TinBasicType;
-hydro_choice = Gr4jType;
+snow_choice = TinBasic;
+hydro_choice = Gr4j;
 
 calib_start = Date(2000,09,01);
 calib_stop = Date(2014,12,31);
@@ -61,19 +61,19 @@ function plot_results(df_res, period, file_save)
   library(hydroGOF, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
   library(labeling, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
   library(ggplot2, lib.loc = 'C:/Users/jmg/Documents/R/win-library/3.2')
-  
+
   df <- $df_res
   df$date <- as.Date(df$date)
   df$q_obs[df$q_obs == -999] <- NA
-  
+
   kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
   nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
-  
+
   plot_title <- paste('KGE = ', kge, ', NSE = ', nse, sep = '')
   path_save <- $path_save
   file_save <- $file_save
   period <- $period
-  
+
   p <- ggplot(df, aes(date))
   p <- p + geom_line(aes(y = q_sim),colour = 'red', size = 0.5)
   p <- p + geom_line(aes(y = q_obs),colour = 'blue', size = 0.5)
@@ -115,14 +115,12 @@ for dir_cur in dir_all
 
   # Run calibration
 
-  param_opt = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs);
+  param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs);
 
-  println(param_opt)
+  println(param_snow)
+  println(param_hydro)
 
   # Reinitilize model
-
-  param_snow  = param_opt[1:length(st_snow.param)]
-  param_hydro = param_opt[length(st_snow.param)+1:end]
 
   st_snow = eval(Expr(:call, snow_choice, param_snow, frac));
   st_hydro = eval(Expr(:call, hydro_choice, param_hydro, frac));

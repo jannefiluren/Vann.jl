@@ -48,8 +48,10 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, nens
 
   # Initilize state variables
 
-  st_snow  = [TinBasicType(param_snow, frac) for i in 1:nens];
-  st_hydro = [Gr4jType(param_hydro, frac) for i in 1:nens];
+  tstep = 1.0
+
+  st_snow  = [TinBasic(tstep, param_snow, frac) for i in 1:nens];
+  st_hydro = [Gr4j(tstep, param_hydro) for i in 1:nens];
 
   # Allocate arrays
 
@@ -149,8 +151,8 @@ end
 
 # Model choices
 
-snow_choice = TinBasicType;
-hydro_choice = Gr4jType;
+snow_choice = TinBasic;
+hydro_choice = Gr4j;
 
 # Load data
 
@@ -164,15 +166,14 @@ epot = epot_zero(date)
 
 # Initilize model
 
-st_snow = eval(Expr(:call, snow_choice, frac));
-st_hydro = eval(Expr(:call, hydro_choice, frac));
+tstep = 1.0
+
+st_snow = eval(Expr(:call, snow_choice, tstep, frac));
+st_hydro = eval(Expr(:call, hydro_choice, tstep));
 
 # Run calibration
 
-param_opt = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs);
-
-param_snow = param_opt[1:length(st_snow.param)]
-param_hydro = param_opt[length(st_snow.param)+1:length(param_opt)]
+param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs);
 
 # Run model and filter
 
@@ -205,14 +206,14 @@ library(zoo, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
 library(hydroGOF, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
 library(labeling, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
 library(ggplot2, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
-    
+
 df <- $df_res
 df$date <- as.Date(df$date)
 df$q_obs[df$q_obs == -999] <- NA
 
 kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
 nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
-    
+
 plot_title <- paste('KGE = ', kge, ' NSE = ', nse, sep = '')
 
 p <- ggplot(df, aes(date))

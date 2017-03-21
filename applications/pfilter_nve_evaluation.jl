@@ -71,8 +71,10 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
 
   # Initilize state variables
 
-  st_snow  = [TinBasicType(param_snow, frac) for i in 1:npart];
-  st_hydro = [Gr4jType(param_hydro, frac) for i in 1:npart];
+  tstep = 1.0
+
+  st_snow  = [TinBasic(tstep, param_snow, frac) for i in 1:npart];
+  st_hydro = [Gr4j(tstep, param_hydro) for i in 1:npart];
 
   for i in eachindex(st_snow)
     st_hydro[i].st = zeros(Float64, 2);
@@ -222,17 +224,17 @@ function run_em_all(path_inputs, path_save, path_param, period, date_start, date
     library(ggplot2, lib.loc = "C:/Users/jmg/Documents/R/win-library/3.2")
     library(yaml, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
     library(plotly, lib.loc="C:/Users/jmg/Documents/R/win-library/3.2")
-    
+
     df <- $df_res
     df$q_obs[df$q_obs == -999] <- NA
-    
+
     kge <- round(KGE(df$q_sim, df$q_obs), digits = 2)
     nse <- round(NSE(df$q_sim, df$q_obs), digits = 2)
-    
+
     plot_title <- paste('KGE = ', kge, ' NSE = ', nse, sep = '')
     path_save <- $path_save
     file_save <- $file_save
-    
+
     p <- ggplot(df, aes(x))
     p <- p + geom_ribbon(aes(ymin = q_min, ymax = q_max), fill = "deepskyblue1")
     p <- p + geom_line(aes(y = q_obs), colour = "black", size = 1)
