@@ -1,7 +1,7 @@
 # Vann
 
-* Linux & OSX: [![Build Status](https://travis-ci.org/jmgnve/Vann.svg?branch=master)](https://travis-ci.org/jmgnve/Vann)
-* Coverage: [![Coverage Status](https://coveralls.io/repos/github/jmgnve/Vann/badge.svg?branch=master)](https://coveralls.io/github/jmgnve/Vann?branch=master)
+[![Build Status](https://travis-ci.org/jmgnve/Vann.jl.svg?branch=master)](https://travis-ci.org/jmgnve/Vann.jl)
+[![codecov](https://codecov.io/gh/jmgnve/Vann.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/jmgnve/Vann.jl)
 
 Julia package containing hydrological models including data assimilation methods (particle filter, ensemble Kalman filter...)
 
