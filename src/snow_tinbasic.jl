@@ -1,7 +1,10 @@
 
 
-# Type definitions
-
+"""
+The TinBasic type contains the state variables (swe), the inputs
+(prec, tair) for one time step, the parameters (param) and the time step
+length (tstep) for a basic temperature index model.
+"""
 type TinBasic <: Snow
 
   prec::Array{Float64,1}
@@ -14,8 +17,15 @@ type TinBasic <: Snow
 
 end
 
-# Outer constructors
 
+"""
+    TinBasic(tstep, frac)
+
+Constructor for TinBasic with predefined state variables, parameters and inputs.
+The time step (tstep) is given as a fraction of one day. Thus, for hourly input
+data tstep should be set to 1/24. The fraction of elevation bands should sum
+up to unity.
+"""
 function TinBasic(tstep, frac)
 
   nzones = length(frac)
@@ -29,6 +39,15 @@ function TinBasic(tstep, frac)
 
 end
 
+
+"""
+    TinBasic(tstep, param, frac)
+
+Constructor for TinBasic with predefined state variables and inputs.
+The time step (tstep) is given as a fraction of one day. Thus, for hourly input
+data tstep should be set to 1/24. The fraction of elevation bands should sum
+up to unity.
+"""
 function TinBasic(tstep, param, frac)
 
   nzones = length(frac)
@@ -41,16 +60,12 @@ function TinBasic(tstep, param, frac)
 
 end
 
-# Parameter ranges for calibration
 
-function get_param_range(mdata::TinBasic)
+"""
+    init_states(mdata::TinBasic)
 
-  param_range_snow = [(-0.5, 0.5), (1.0, 8.0), (0.5, 2.0)]
-
-end
-
-# Initilize state variables
-
+Initilize the state variables of the model.
+"""
 function init_states(mdata::TinBasic)
 
   for i in eachindex(mdata.swe)
@@ -59,8 +74,24 @@ function init_states(mdata::TinBasic)
 
 end
 
-# Assign parameter values
 
+"""
+    get_param_range(mdata::TinBasic)
+
+Get allowed parameter ranges for the calibration of the model.
+"""
+function get_param_range(mdata::TinBasic)
+
+  param_range_snow = [(-0.5, 0.5), (1.0, 8.0), (0.5, 2.0)]
+
+end
+
+
+"""
+    assign_param(mdata::TinBasic, param::Array{Float64,1})
+
+Assign parameter values to the TinBasic type.
+"""
 function assign_param(mdata::TinBasic, param::Array{Float64,1})
 
   for i in eachindex(mdata.param)
@@ -70,9 +101,54 @@ function assign_param(mdata::TinBasic, param::Array{Float64,1})
 end
 
 
+"""
+    enkf_snow(mdata::Array{TinBasic}, obs_ens, q_sim)
 
-# Temperature index snow model
+Implementation of the ensemble Kalman filter for the basic temperature index
+snow model.
+"""
+function enkf_snow(mdata::Array{TinBasic}, obs_ens, q_sim)
 
+  nens = length(mdata)
+
+  # Allocate arrays
+
+  swe = zeros(Float64, length(mdata[1].swe), nens)
+
+  # Add states to arrays
+
+  for iens = 1:nens
+
+    swe[:, iens]    = mdata[iens].swe
+
+  end
+
+  # Run ensemble kalman filter
+
+  swe = enkf(swe, obs_ens, q_sim)
+
+  # Check limits of states
+
+  swe[swe .< 0] = 0.
+
+  # Add arrays to states
+
+  for iens = 1:nens
+
+    mdata[iens].swe = swe[:, iens]
+
+  end
+
+  nothing
+
+end
+
+
+"""
+    snow_model(mdata::TinBasic)
+
+Propagate the model one time step and compute simulated snowpack dischage.
+"""
 function snow_model(mdata::TinBasic)
 
   # Parameters

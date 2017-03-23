@@ -1,15 +1,8 @@
-# Add packages
+"""
+    perturb_input(st_snow, prec, tair, itime)
 
-using Vann
-using DataAssim
-using PyPlot
-using Distributions
-using DataFrames
-
-
-
-# Perturb input data for snow model
-
+Perturb input data for snow model
+"""
 function perturb_input(st_snow, prec, tair, itime)
 
     n = Uniform(0.5, 1.5)
@@ -30,9 +23,12 @@ function perturb_input(st_snow, prec, tair, itime)
 end
 
 
-# Particle filter
+"""
+    particle_filter(st_snow, st_hydro, prec, tair, epot, q_obs, npart)
 
-function run_filter(st_snow, st_hydro, prec, tair, epot, q_obs, npart)
+Run the particle filter for any combination of snow and hydrological routing model.
+"""
+function particle_filter(st_snow, st_hydro, prec, tair, epot, q_obs, npart)
 
     srand(1)
 
@@ -116,55 +112,84 @@ function run_filter(st_snow, st_hydro, prec, tair, epot, q_obs, npart)
 
 end
 
-# Model choices
 
-snow_choice = TinStandard
-hydro_choice = Hbv
+"""
+    enkf_filter(st_snow, st_hydro, prec, tair, epot, q_obs, nens)
 
-# Read data
+Run the ensemble Kalman filter for any combination of snow and hydrological
+routing model.
+"""
+function enkf_filter(st_snow, st_hydro, prec, tair, epot, q_obs, nens)
 
-path_inputs = Pkg.dir("Vann", "data_atnasjo")
+  srand(1)
 
-date, tair, prec, q_obs, frac = load_data(path_inputs)
+  # Number of elevation bands (rows) and time steps (cols)
 
-# Compute potential evapotranspiration
+  nzones = size(prec, 1)
+  ntimes = size(prec, 2)
 
-epot = epot_zero(date)
+  # Initilize state variables
 
-# Initilize model
+  st_snow  = [deepcopy(st_snow) for i in 1:nens]
+  st_hydro = [deepcopy(st_hydro) for i in 1:nens]
 
-tstep = 1.0
+  # Allocate arrays
 
-st_snow = eval(Expr(:call, snow_choice, tstep, frac))
-st_hydro = eval(Expr(:call, hydro_choice, tstep))
+  q_res  = zeros(Float64, ntimes, 3)
+  q_sim  = zeros(Float64, 1, nens)
 
-# Run calibration
+  # Start time Loop
 
-param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs)
+  for itime = 1:ntimes
 
-# Reinitilize model
+    # Perturb inputs and run models
 
-st_snow = eval(Expr(:call, snow_choice, tstep, param_snow, frac))
-st_hydro = eval(Expr(:call, hydro_choice, tstep, param_hydro))
+    for iens = 1:nens
 
-# Run particle filter
+      perturb_input(st_snow[iens], prec, tair, itime)
 
-npart = 3000
+      snow_model(st_snow[iens])
 
-q_res = run_filter(st_snow, st_hydro, prec, tair, epot, q_obs, npart)
+      get_input(st_snow[iens], st_hydro[iens], epot, itime)
 
-# Plot results
+      q_sim[iens] = hydro_model(st_hydro[iens])
 
-q_mean = q_res[:, 1]
-q_min  = q_res[:, 2]
-q_max  = q_res[:, 3]
+    end
 
-df_res = DataFrame(date = date, q_obs = q_obs, q_mean = q_mean, q_min = q_min, q_max = q_max)
+    # Run filter part
 
-fig = plt[:figure](figsize = (12,7))
+    if q_obs[itime] >= 0
 
-plt[:style][:use]("ggplot")
+      # Perturb observations
 
-plt[:plot](df_res[:date], df_res[:q_obs], linewidth = 1.2, color = "k", label = "Observed", zorder = 1)
-plt[:fill_between](df_res[:date], df_res[:q_max], df_res[:q_min], facecolor = "r", edgecolor = "r", label = "Simulated", alpha = 0.55, zorder = 2)
-plt[:legend]()
+      sigma = max(0.1 * q_obs[itime], 0.1)
+
+      obs_ens = q_obs[itime] + sigma * randn(Float64, 1, nens)
+
+      # Update states of hydrological model
+
+      enkf_hydro(st_hydro, obs_ens, q_sim)
+
+      # Update states of snow model
+
+      enkf_snow(st_snow, obs_ens, q_sim)
+
+      # Update simulated discharge
+
+      q_sim  = enkf(q_sim, obs_ens, q_sim)
+
+      q_sim[q_sim .< 0] = 0.
+
+    end
+
+    # Store results
+
+    q_res[itime, 1] = mean(q_sim)
+    q_res[itime, 2] = minimum(q_sim)
+    q_res[itime, 3] = maximum(q_sim)
+
+  end
+
+  return(q_res)
+
+end

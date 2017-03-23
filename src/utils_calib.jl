@@ -103,7 +103,7 @@ function run_model_calib(st_hydro::Hydro, prec, epot, q_obs)
 
     calib_wrapper_tmp(param) = calib_wrapper(param, st_hydro, prec, epot, q_obs, q_sim)
 
-    res = bboptimize(calib_wrapper_tmp; SearchRange = param_range)
+    res = bboptimize(calib_wrapper_tmp; SearchRange = param_range, TraceMode = :silent)
 
     param_hydro = best_candidate(res)
 
@@ -140,7 +140,7 @@ function run_model_calib(st_snow::Snow, st_hydro::Hydro, date, tair, prec, epot,
 
     calib_wrapper_tmp(param) = calib_wrapper(param, st_snow, st_hydro, date, tair, prec, epot, q_obs, q_sim)
 
-    res = bboptimize(calib_wrapper_tmp; SearchRange = param_range)
+    res = bboptimize(calib_wrapper_tmp; SearchRange = param_range, TraceMode = :silent)
 
     # Extract parameters for snow and hydrological routing model
 

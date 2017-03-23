@@ -2,6 +2,7 @@ module Vann
 
 using BlackBoxOptim
 using Distributions
+using DataAssim
 
 abstract Hydro
 abstract Snow
@@ -17,6 +18,7 @@ export run_model
 export assign_param
 export get_input
 export epot_zero, epot_monthly
+export particle_filter, enkf_filter
 
 include("hydro_hbv.jl")
 include("hydro_gr4j.jl")
@@ -26,5 +28,6 @@ include("utils_data.jl")
 include("utils_calib.jl")
 include("utils_model.jl")
 include("utils_epot.jl")
+include("utils_data_assim.jl")
 
 end

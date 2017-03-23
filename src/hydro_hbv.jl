@@ -142,6 +142,65 @@ end
 
 
 """
+    enkf_hydro(mdata::Array{Hbv,1}, obs_ens, q_sim)
+
+Implementation of the ensemble Kalman filter for the HBV model.
+"""
+function enkf_hydro(mdata::Array{Hbv,1}, obs_ens, q_sim)
+
+  nens = length(mdata)
+
+  # Allocate arrays
+
+  sm    = zeros(Float64, length(mdata[1].sm), nens)
+  suz   = zeros(Float64, length(mdata[1].suz), nens)
+  slz   = zeros(Float64, length(mdata[1].slz), nens)
+  st_uh = zeros(Float64, length(mdata[1].st_uh), nens)
+
+  # Add states to arrays
+
+  for iens = 1:nens
+
+    sm[:, iens]    = mdata[iens].sm
+    suz[:, iens]   = mdata[iens].suz
+    slz[:, iens]   = mdata[iens].slz
+    st_uh[:, iens] = mdata[iens].st_uh
+
+  end
+
+  # Run ensemble kalman filter
+
+  sm    = enkf(sm, obs_ens, q_sim)
+  suz   = enkf(suz, obs_ens, q_sim)
+  slz   = enkf(slz, obs_ens, q_sim)
+  st_uh = enkf(st_uh, obs_ens, q_sim)
+
+  # Check limits of states
+
+  sm[sm .< 0] = 0.
+  sm[sm .> mdata[1].param[1]] = mdata[1].param[1]
+
+  suz[suz .< 0] = 0.
+  slz[slz .< 0] = 0.
+  st_uh[st_uh .< 0] = 0.
+
+  # Add arrays to states
+
+  for iens = 1:nens
+
+    mdata[iens].sm = sm[:, iens][1]
+    mdata[iens].suz = suz[:, iens][1]
+    mdata[iens].slz = slz[:, iens][1]
+    mdata[iens].st_uh = st_uh[:, iens]
+
+  end
+
+end
+
+
+
+
+"""
     hydro_model(mdata::Hbv)
 
 Propagate the model one time step and return simulated dischage.

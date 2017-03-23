@@ -134,6 +134,61 @@ end
 
 
 """
+    enkf_hydro(mdata::Array{Gr4j,1}, obs_ens, q_sim)
+
+Implementation of the ensemble Kalman filter for the GR4J model.
+"""
+function enkf_hydro(mdata::Array{Gr4j,1}, obs_ens, q_sim)
+
+  nens = length(mdata)
+
+  # Allocate arrays
+
+  st     = zeros(Float64, length(mdata[1].st), nens)
+  st_uh1 = zeros(Float64, length(mdata[1].st_uh1), nens)
+  st_uh2 = zeros(Float64, length(mdata[1].st_uh2), nens)
+
+  # Add states to arrays
+
+  for iens = 1:nens
+
+    st[:, iens]     = mdata[iens].st
+    st_uh1[:, iens] = mdata[iens].st_uh1
+    st_uh2[:, iens] = mdata[iens].st_uh2
+
+  end
+
+  # Run ensemble kalman filter
+
+  st     = enkf(st, obs_ens, q_sim)
+  st_uh1 = enkf(st_uh1, obs_ens, q_sim)
+  st_uh2 = enkf(st_uh2, obs_ens, q_sim)
+
+  # Check limits of states
+
+  st[st .< 0] = 0.
+  st_uh1[st_uh1 .< 0] = 0.
+  st_uh2[st_uh2 .< 0] = 0.
+
+  st[1, st[1, :] .> mdata[1].param[1]] = mdata[1].param[1]
+  st[2, st[2, :] .> mdata[1].param[3]] = mdata[1].param[3]
+
+  # Add arrays to states
+
+  for iens = 1:nens
+
+    mdata[iens].st = st[:, iens]
+    mdata[iens].st_uh1 = st_uh1[:, iens]
+    mdata[iens].st_uh2 = st_uh2[:, iens]
+
+  end
+
+  nothing
+
+end
+
+
+"""
     hydro_model(mdata::Gr4j)
 
 Propagate the model one time step and return simulated dischage.

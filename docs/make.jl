@@ -7,6 +7,7 @@ makedocs(
   pages = [
       "Home" => "index.md",
       "Hydrological models" => "hyd_models.md",
+      "Snow models" => "snow_models.md",
       "Data assimilation" => "data_assim.md"
   ]
 )
