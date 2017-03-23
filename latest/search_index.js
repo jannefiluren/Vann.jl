@@ -33,6 +33,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "index.html#Example-1",
+    "page": "Home",
+    "title": "Example",
+    "category": "section",
+    "text": "This short example runs the model in lumped mode.\nusing Vann\n\nfilename = Pkg.dir(\"Vann\", \"data_airgr/test_data.txt\")\n\ndata = readdlm(filename, ',', header = true)\n\nprec  = data[1][:,1]\nepot  = data[1][:,2]\nq_obs = data[1][:,3]\n\nprec = transpose(prec)\nepot = transpose(epot)\n\nfrac = zeros(Float64, 1)\n\nparam  = [257.238, 1.012, 88.235, 2.208]\n\ntstep = 1.0\n\n# Select model\n\nst_gr4j = Gr4j(tstep, param)\n\n# Run model\n\nq_sim = run_model(st_gr4j, prec, epot)\nnothing # hide"
+},
+
+{
     "location": "index.html#Input-variables-1",
     "page": "Home",
     "title": "Input variables",
@@ -185,6 +193,86 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "snow_models.html#",
+    "page": "Snow models",
+    "title": "Snow models",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "snow_models.html#Snow-models-1",
+    "page": "Snow models",
+    "title": "Snow models",
+    "category": "section",
+    "text": "The following snow models are currently included in the package. The can be combined with any of the hydrological models."
+},
+
+{
+    "location": "snow_models.html#Vann.TinBasic",
+    "page": "Snow models",
+    "title": "Vann.TinBasic",
+    "category": "Type",
+    "text": "The TinBasic type contains the state variables (swe), the inputs (prec, tair) for one time step, the parameters (param) and the time step length (tstep) for a basic temperature index model.\n\n\n\n"
+},
+
+{
+    "location": "snow_models.html#Vann.TinBasic-Tuple{Any,Any}",
+    "page": "Snow models",
+    "title": "Vann.TinBasic",
+    "category": "Method",
+    "text": "TinBasic(tstep, frac)\n\nConstructor for TinBasic with predefined state variables, parameters and inputs. The time step (tstep) is given as a fraction of one day. Thus, for hourly input data tstep should be set to 1/24. The fraction of elevation bands should sum up to unity.\n\n\n\n"
+},
+
+{
+    "location": "snow_models.html#Vann.TinBasic-Tuple{Any,Any,Any}",
+    "page": "Snow models",
+    "title": "Vann.TinBasic",
+    "category": "Method",
+    "text": "TinBasic(tstep, param, frac)\n\nConstructor for TinBasic with predefined state variables and inputs. The time step (tstep) is given as a fraction of one day. Thus, for hourly input data tstep should be set to 1/24. The fraction of elevation bands should sum up to unity.\n\n\n\n"
+},
+
+{
+    "location": "snow_models.html#Vann.init_states-Tuple{Vann.TinBasic}",
+    "page": "Snow models",
+    "title": "Vann.init_states",
+    "category": "Method",
+    "text": "init_states(mdata::TinBasic)\n\nInitilize the state variables of the model.\n\n\n\n"
+},
+
+{
+    "location": "snow_models.html#Vann.get_param_range-Tuple{Vann.TinBasic}",
+    "page": "Snow models",
+    "title": "Vann.get_param_range",
+    "category": "Method",
+    "text": "get_param_range(mdata::TinBasic)\n\nGet allowed parameter ranges for the calibration of the model.\n\n\n\n"
+},
+
+{
+    "location": "snow_models.html#Vann.assign_param-Tuple{Vann.TinBasic,Array{Float64,1}}",
+    "page": "Snow models",
+    "title": "Vann.assign_param",
+    "category": "Method",
+    "text": "assign_param(mdata::TinBasic, param::Array{Float64,1})\n\nAssign parameter values to the TinBasic type.\n\n\n\n"
+},
+
+{
+    "location": "snow_models.html#TinBasic-1",
+    "page": "Snow models",
+    "title": "TinBasic",
+    "category": "section",
+    "text": "A basic implementation of a temperature index snow model.TinBasicThe following constructors are available for generating the types:TinBasic(tstep, frac)\nTinBasic(tstep, param, frac)The following functions are mainly used during the calibration of the model:init_states(mdata::TinBasic)\nget_param_range(mdata::TinBasic)\nassign_param(mdata::TinBasic, param::Array{Float64,1})The models are written in state-space form. Calling the function below runs the model for one time step.snow_model(mdata::TinBasic)"
+},
+
+{
+    "location": "snow_models.html#TinStandard-1",
+    "page": "Snow models",
+    "title": "TinStandard",
+    "category": "section",
+    "text": "A an enhanced implementation of a temperature index snow model including a liquid water content.TinStandardThe following constructors are available for generating the types:TinStandard(tstep, frac)\nTinStandard(tstep, param, frac)The following functions are mainly used during the calibration of the model:init_states(mdata::TinStandard)\nget_param_range(mdata::TinStandard)\nassign_param(mdata::TinStandard, param::Array{Float64,1})The models are written in state-space form. Calling the function below runs the model for one time step.snow_model(mdata::TinStandard)"
+},
+
+{
     "location": "data_assim.html#",
     "page": "Data assimilation",
     "title": "Data assimilation",
@@ -197,23 +285,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Data assimilation",
     "title": "Data assimilation methods",
     "category": "section",
-    "text": ""
+    "text": "The package contains two classical data assimilation methods; the ensemble Kalman filter and the particle filter. Both filter can be used with any combinations of the snow and hydrological models. Select the ensemble Kalman filter using enkf_filter and the particle filter using particle_filter."
 },
 
 {
-    "location": "data_assim.html#Ensemble-Kalman-filter-1",
+    "location": "data_assim.html#Filter-example-1",
     "page": "Data assimilation",
-    "title": "Ensemble Kalman filter",
+    "title": "Filter example",
     "category": "section",
-    "text": "An example"
-},
-
-{
-    "location": "data_assim.html#Particle-filter-1",
-    "page": "Data assimilation",
-    "title": "Particle filter",
-    "category": "section",
-    "text": "An example"
+    "text": "\nusing Vann\nusing DataAssim\n\n# Model choices\n\nsnow_choice = TinBasic\nhydro_choice = Gr4j\n\n# Filter choices\n\nfilter_choice = enkf_filter\n\nnens = 100\n\n# Load data\n\npath_inputs = Pkg.dir(\"Vann\", \"data_atnasjo\")\n\ndate, tair, prec, q_obs, frac = load_data(path_inputs)\n\n# Compute potential evapotranspiration\n\nepot = epot_zero(date)\n\n# Initilize model\n\ntstep = 1.0\n\nst_snow = eval(Expr(:call, snow_choice, tstep, frac))\nst_hydro = eval(Expr(:call, hydro_choice, tstep))\n\n# Run calibration\n\nparam_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs)\n\n# Run model and filter\n\nst_snow = eval(Expr(:call, snow_choice, tstep, param_snow, frac))\nst_hydro = eval(Expr(:call, hydro_choice, tstep, param_hydro))\n\nq_res = eval(Expr(:call, filter_choice, st_snow, st_hydro, prec, tair, epot, q_obs, nens))\nnothing # hide"
 },
 
 ]}
