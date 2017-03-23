@@ -16,9 +16,6 @@ notifications:
 #  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 #  - julia -e 'Pkg.clone(pwd()); Pkg.build("Vann"); Pkg.test("Vann"; coverage=true)'
 
-script:
-  - julia -e 'Pkg.clone("https://github.com/jmgnve/DataAssim.jl.git")'
-
 after_success:
   # push coverage results to Coveralls
   - julia -e 'cd(Pkg.dir("Vann")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
