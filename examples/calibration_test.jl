@@ -11,7 +11,7 @@ hydro_choice = Gr4j
 
 # Load data
 
-path_inputs = Pkg.dir("Vann", "data_atnasjo")
+path_inputs = Pkg.dir("Vann", "data/atnasjo")
 
 date, tair, prec, q_obs, frac = load_data(path_inputs)
 

@@ -26,7 +26,7 @@ This short example runs the model in lumped mode.
 
 using Vann
 
-filename = Pkg.dir("Vann", "data_airgr/test_data.txt")
+filename = Pkg.dir("Vann", "data/airgr/test_data.txt")
 
 data = readdlm(filename, ',', header = true)
 

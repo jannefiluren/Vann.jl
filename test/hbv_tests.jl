@@ -4,7 +4,7 @@ using Vann
 
 # Read data
 
-data = readdlm("../data_airgr/test_data.txt", ',', header = true);
+data = readdlm("../data/airgr/test_data.txt", ',', header = true);
 
 prec  = data[1][:,1];
 epot  = data[1][:,2];
@@ -35,7 +35,7 @@ q_sim = run_model(st_hbv, prec, epot);
 
 # Load data
 
-date, tair, prec, q_obs, frac = load_data("../data_atnasjo", "Q_ref.txt");
+date, tair, prec, q_obs, frac = load_data("../data/atnasjo", "Q_ref.txt");
 
 # Compute potential evapotranspiration
 

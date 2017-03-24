@@ -18,7 +18,7 @@ The example below runs one model combination and plots the results:
 using Vann
 using PyPlot
 
-filepath = joinpath(Pkg.dir("Vann"), "data_atnasjo")
+filepath = joinpath(Pkg.dir("Vann"), "data/atnasjo")
 
 date, tair, prec, q_obs, frac = load_data(filepath, "Q_ref.txt")
 

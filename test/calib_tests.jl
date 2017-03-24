@@ -9,7 +9,7 @@ using BlackBoxOptim
 
 # Read data
 
-filename = joinpath(dirname(@__FILE__), "../data_airgr/test_data.txt")
+filename = joinpath(dirname(@__FILE__), "../data/airgr/test_data.txt")
 
 data = readdlm(filename, ',', header = true)
 
@@ -61,7 +61,7 @@ end
 
 # Load data
 
-filename = joinpath(dirname(@__FILE__), "../data_atnasjo")
+filename = joinpath(dirname(@__FILE__), "../data/atnasjo")
 
 date, tair, prec, q_obs, frac = load_data(filename, "Q_ref.txt")
 
@@ -116,7 +116,7 @@ end
 
 # # Load data
 
-# filename = joinpath(dirname(@__FILE__), "../data_atnasjo")
+# filename = joinpath(dirname(@__FILE__), "../data/atnasjo")
 
 # date, tair, prec, q_obs, frac = load_data(filename, "Q_ref.txt")
 

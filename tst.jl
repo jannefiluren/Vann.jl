@@ -4,7 +4,7 @@ using PyPlot
 
 # Load data
 
-date, tair, prec, q_obs, frac = Vann.load_data("data_atnasjo");
+date, tair, prec, q_obs, frac = Vann.load_data("data/atnasjo");
 
 # Parameters
 
