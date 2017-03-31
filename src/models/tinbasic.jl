@@ -69,7 +69,7 @@ Initilize the state variables of the model.
 function init_states(mdata::TinBasic)
 
   for i in eachindex(mdata.swe)
-    mdata.swe[i] = 0.
+    mdata.swe[i] = 0.0
   end
 
 end
@@ -82,7 +82,7 @@ Get allowed parameter ranges for the calibration of the model.
 """
 function get_param_range(mdata::TinBasic)
 
-  param_range_snow = [(-0.5, 0.5), (1.0, 8.0), (0.5, 2.0)]
+  param_range_snow = [(-3.0, 3.0), (0.1, 10.0), (0.5, 2.0)]
 
 end
 
@@ -163,14 +163,13 @@ function snow_model(mdata::TinBasic)
 
     # Compute solid and liquid precipitation
 
-    psolid  = mdata.prec[i] * pcorr
-    pliquid = mdata.prec[i] * pcorr
+    psolid, pliquid = split_prec(mdata.prec[i], mdata.tair[i], tth)
 
-    mdata.tair[i] > tth ? psolid = 0.0 : pliquid = 0.0
+    psolid  = psolid * pcorr
 
     # Compute snow melt
 
-    mdata.tair[i] < tth ? M = 0.0 : M = ddf * mdata.tair[i]
+    M = pot_melt(mdata.tair[i], ddf, tth)
 
     M = min(mdata.swe[i],M)
 

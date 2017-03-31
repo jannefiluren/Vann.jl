@@ -4,11 +4,6 @@ using Vann
 using PyPlot
 using DataFrames
 
-# Model choices
-
-snow_choice = TinBasic
-hydro_choice = Gr4j
-
 # Load data
 
 path_inputs = Pkg.dir("Vann", "data/atnasjo")
@@ -19,7 +14,10 @@ date, tair, prec, q_obs, frac = load_data(path_inputs)
 
 epot = epot_zero(date)
 
-# Initilize model
+# Model choices
+
+snow_choice = TinBasic
+hydro_choice = Gr4j
 
 tstep = 1.0
 

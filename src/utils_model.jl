@@ -50,3 +50,31 @@ function run_model(st_snow, st_hydro, date, tair, prec, epot)
   return(q_sim)
 
 end
+
+
+# Model wrapper for snow model
+
+function run_model(st_snow, date, tair, prec)
+
+  # Number of time steps
+
+  ntimes = size(prec, 2)
+  nzones = length(st_snow.swe)
+
+  # Run model
+
+  infilt_sim = zeros(ntimes)
+
+  for itime in 1:ntimes
+
+    get_input(st_snow, prec, tair, date, itime)
+
+    snow_model(st_snow)
+
+    infilt_sim[itime] = st_snow.infilt
+
+  end
+
+  return infilt_sim
+
+end

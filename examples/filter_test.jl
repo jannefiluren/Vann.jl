@@ -16,7 +16,7 @@ hydro_choice = Gr4j
 
 filter_choice = particle_filter
 
-nens = 100
+nens = 50
 
 # Load data
 

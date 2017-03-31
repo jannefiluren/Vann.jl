@@ -267,8 +267,8 @@ end
 
 period = "calib";
 
-date_start = Date(2000,09,01);
-date_stop  = Date(2014,12,31);
+date_start = DateTime(2000,09,01);
+date_stop  = DateTime(2014,12,31);
 
 run_em_all(path_inputs, path_save, path_param, period, date_start, date_stop);
 
@@ -276,7 +276,7 @@ run_em_all(path_inputs, path_save, path_param, period, date_start, date_stop);
 
 period = "valid";
 
-date_start = Date(1985,09,01);
-date_stop  = Date(2000,08,31);
+date_start = DateTime(1985,09,01);
+date_stop  = DateTime(2000,08,31);
 
 run_em_all(path_inputs, path_save, path_param, period, date_start, date_stop);

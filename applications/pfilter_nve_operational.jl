@@ -248,6 +248,6 @@ end
 
 # Run particle filter
 
-date_start = Date(2013,09,01);
+date_start = DateTime(2013,09,01);
 
 run_em_all(path_inputs, path_save, path_param, date_start);

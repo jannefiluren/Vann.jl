@@ -9,7 +9,7 @@ type TinStandard <: Snow
 
   prec::Array{Float64,1}
   tair::Array{Float64,1}
-  date::Date
+  date::DateTime
   swe::Array{Float64,1}
   lw::Array{Float64,1}
   infilt::Float64
@@ -33,7 +33,7 @@ function TinStandard(tstep, frac)
   nzones = length(frac)
   prec   = zeros(Float64, nzones)
   tair   = zeros(Float64, nzones)
-  date   = Date()
+  date   = DateTime()
   swe    = zeros(Float64, nzones)
   lw     = zeros(Float64, nzones)
   infilt = 0.0
@@ -57,7 +57,7 @@ function TinStandard(tstep, param, frac)
   nzones = length(frac)
   prec   = zeros(Float64, nzones)
   tair   = zeros(Float64, nzones)
-  date   = Date()
+  date   = DateTime()
   swe    = zeros(Float64, nzones)
   lw     = zeros(Float64, nzones)
   infilt = 0.0

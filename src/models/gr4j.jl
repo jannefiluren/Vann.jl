@@ -111,7 +111,7 @@ Get allowed parameter ranges for the calibration of the model.
 """
 function get_param_range(mdata::Gr4j)
 
-  param_range_hydro = [(1.0, 1000.0), (-10.0, 10.0), (1.0, 500.0), (0.5, 10.0)]
+  param_range_hydro = [(1.0, 20000.0), (-100.0, 100.0), (1.0, 20000.0), (0.5, 10.0)]
 
 end
 
@@ -204,7 +204,7 @@ function hydro_model(mdata::Gr4j)
   P1     = mdata.infilt
   E      = mdata.epot
 
-  Param[3] = Param[3] * mdata.tstep
+  # Param[2] = Param[2] * mdata.tstep
 
   A = Param[1]
   B = 0.9

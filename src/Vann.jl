@@ -20,6 +20,7 @@ export get_input
 export epot_zero, epot_monthly
 export particle_filter, enkf_filter
 export split_prec, compute_ddf, pot_melt
+export kge, nse
 
 include("models/gr4j.jl")
 include("models/hbv.jl")

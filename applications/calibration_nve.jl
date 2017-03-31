@@ -22,11 +22,11 @@ epot_choice = epot_monthly;
 snow_choice = TinBasic;
 hydro_choice = Gr4j;
 
-calib_start = Date(2000,09,01);
-calib_stop = Date(2014,12,31);
+calib_start = DateTime(2000,09,01);
+calib_stop = DateTime(2014,12,31);
 
-valid_start = Date(1985,09,01);
-valid_stop = Date(2000,08,31);
+valid_start = DateTime(1985,09,01);
+valid_stop = DateTime(2000,08,31);
 
 
 ################################################################################

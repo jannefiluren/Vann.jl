@@ -30,7 +30,7 @@ function calib_wrapper(param, st_hydro, prec, epot, q_obs, q_sim)
 
     end
 
-    return(1.0 - nse(q_sim, q_obs))
+    return(1.0 - kge(q_sim, q_obs))
 
 end
 
@@ -73,7 +73,7 @@ function calib_wrapper(param, st_snow, st_hydro, date, tair, prec, epot, q_obs, 
 
     end
 
-    return(1.0 - nse(q_sim, q_obs))
+    return(1.0 - kge(q_sim, q_obs))
 
 end
 
@@ -103,7 +103,7 @@ function run_model_calib(st_hydro::Hydro, prec, epot, q_obs)
 
     calib_wrapper_tmp(param) = calib_wrapper(param, st_hydro, prec, epot, q_obs, q_sim)
 
-    res = bboptimize(calib_wrapper_tmp; SearchRange = param_range, TraceMode = :silent)
+    res = bboptimize(calib_wrapper_tmp; SearchRange = param_range) # , TraceMode = :silent)
 
     param_hydro = best_candidate(res)
 
@@ -140,7 +140,7 @@ function run_model_calib(st_snow::Snow, st_hydro::Hydro, date, tair, prec, epot,
 
     calib_wrapper_tmp(param) = calib_wrapper(param, st_snow, st_hydro, date, tair, prec, epot, q_obs, q_sim)
 
-    res = bboptimize(calib_wrapper_tmp; SearchRange = param_range, TraceMode = :silent)
+    res = bboptimize(calib_wrapper_tmp; SearchRange = param_range) #, TraceMode = :silent)
 
     # Extract parameters for snow and hydrological routing model
 
@@ -165,7 +165,9 @@ Compute modified Kling-Gupta efficiency
 
 function kge(q_sim, q_obs)
 
-    ikeep = q_obs .!= -999.
+    # ikeep = q_obs .!= -999.
+
+    ikeep = !isnan(q_obs)
 
     q_sim = q_sim[ikeep]
     q_obs = q_obs[ikeep]
@@ -193,7 +195,9 @@ Compute Nash-Sutcliffe efficiency
 
 function nse(q_sim, q_obs)
 
-    ikeep = q_obs .!= -999.
+  # ikeep = q_obs .!= -999.
+
+  ikeep = !isnan(q_obs)
 
     q_sim = q_sim[ikeep]
     q_obs = q_obs[ikeep]

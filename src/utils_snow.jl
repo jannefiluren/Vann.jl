@@ -4,7 +4,7 @@
 Compute a time-varying degree-day factor depending on the date and a minimum
 `ddf_min` and maximum `ddf_max` degree-day factor.
 """
-function compute_ddf(date::Date, ddf_min::Float64, ddf_max::Float64)
+function compute_ddf(date::DateTime, ddf_min::Float64, ddf_max::Float64)
 
     doy = Dates.dayofyear(date)
 
@@ -16,14 +16,14 @@ end
 
 
 """
-    split_prec(prec, tair, tth_phase = 0.0; m_phase = 1.0)
+    split_prec(prec, tair, tth_phase = 0.0; m_phase = 0.5)
 
 Split precipitation into solid and liquid precipitation from precipitation
 `prec` and air temperature `tair` using temperature threshold parameter
 `tth_phase` and smoothing parameter `m_phase` which needs to be greater
 than zero.
 """
-function split_prec(prec, tair, tth_phase = 0.0; m_phase = 1.0)
+function split_prec(prec, tair, tth_phase = 0.0; m_phase = 0.5)
 
     frac_snowfall = 1. / (1. + exp( (tair - tth_phase) / m_phase ))
 
