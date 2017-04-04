@@ -1,5 +1,7 @@
 # Vann
 
+[![Join the chat at https://gitter.im/Vann-jl/Lobby](https://badges.gitter.im/Vann-jl/Lobby.svg)](https://gitter.im/Vann-jl/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status](https://travis-ci.org/jmgnve/Vann.jl.svg?branch=master)](https://travis-ci.org/jmgnve/Vann.jl)
 [![codecov](https://codecov.io/gh/jmgnve/Vann.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/jmgnve/Vann.jl)
 
