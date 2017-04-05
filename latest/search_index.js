@@ -37,7 +37,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Example",
     "category": "section",
-    "text": "This short example runs the model in lumped mode.\nusing Vann\n\nfilename = Pkg.dir(\"Vann\", \"data/airgr/test_data.txt\")\n\ndata = readdlm(filename, ',', header = true)\n\nprec  = data[1][:,1]\nepot  = data[1][:,2]\nq_obs = data[1][:,3]\n\nprec = transpose(prec)\nepot = transpose(epot)\n\nfrac = zeros(Float64, 1)\n\nparam  = [257.238, 1.012, 88.235, 2.208]\n\ntstep = 1.0\n\n# Select model\n\nst_gr4j = Gr4j(tstep, param)\n\n# Run model\n\nq_sim = run_model(st_gr4j, prec, epot)\nnothing # hide"
+    "text": "This short example runs the model in lumped mode.\nusing Vann\n\nfilename = Pkg.dir(\"Vann\", \"data/airgr/test_data.txt\")\n\ndata = readdlm(filename, ',', header = true)\n\nprec  = data[1][:,1]\nepot  = data[1][:,2]\nq_obs = data[1][:,3]\n\nprec = transpose(prec)\nepot = transpose(epot)\n\nfrac = zeros(Float64, 1)\n\nparam  = [257.238, 1.012, 88.235, 2.208]\n\ntstep = 24.0\n\n# Select model\n\nst_gr4j = Gr4j(tstep, param)\n\n# Run model\n\nq_sim = run_model(st_gr4j, prec, epot)\nnothing # hide"
 },
 
 {
@@ -293,7 +293,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Data assimilation",
     "title": "Filter example",
     "category": "section",
-    "text": "\nusing Vann\nusing DataAssim\n\n# Model choices\n\nsnow_choice = TinBasic\nhydro_choice = Gr4j\n\n# Filter choices\n\nfilter_choice = enkf_filter\n\nnens = 100\n\n# Load data\n\npath_inputs = Pkg.dir(\"Vann\", \"data/atnasjo\")\n\ndate, tair, prec, q_obs, frac = load_data(path_inputs)\n\n# Compute potential evapotranspiration\n\nepot = epot_zero(date)\n\n# Initilize model\n\ntstep = 1.0\n\nst_snow = eval(Expr(:call, snow_choice, tstep, frac))\nst_hydro = eval(Expr(:call, hydro_choice, tstep))\n\n# Run calibration\n\nparam_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs)\n\n# Run model and filter\n\nst_snow = eval(Expr(:call, snow_choice, tstep, param_snow, frac))\nst_hydro = eval(Expr(:call, hydro_choice, tstep, param_hydro))\n\nq_res = eval(Expr(:call, filter_choice, st_snow, st_hydro, prec, tair, epot, q_obs, nens))\nnothing # hide"
+    "text": "\nusing Vann\nusing DataAssim\n\n# Model choices\n\nsnow_choice = TinBasic\nhydro_choice = Gr4j\n\n# Filter choices\n\nfilter_choice = enkf_filter\n\nnens = 100\n\n# Load data\n\npath_inputs = Pkg.dir(\"Vann\", \"data/atnasjo\")\n\ndate, tair, prec, q_obs, frac = load_data(path_inputs)\n\n# Compute potential evapotranspiration\n\nepot = epot_zero(date)\n\n# Initilize model\n\ntstep = 24.0\n\nst_snow = eval(Expr(:call, snow_choice, tstep, frac))\nst_hydro = eval(Expr(:call, hydro_choice, tstep))\n\n# Run calibration\n\nparam_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs)\n\n# Run model and filter\n\nst_snow = eval(Expr(:call, snow_choice, tstep, param_snow, frac))\nst_hydro = eval(Expr(:call, hydro_choice, tstep, param_hydro))\n\nq_res = eval(Expr(:call, filter_choice, st_snow, st_hydro, prec, tair, epot, q_obs, nens))\nnothing # hide"
 },
 
 ]}
