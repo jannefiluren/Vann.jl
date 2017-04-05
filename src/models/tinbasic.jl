@@ -154,7 +154,7 @@ function snow_model(mdata::TinBasic)
   # Parameters
 
   tth   = mdata.param[1]
-  ddf   = mdata.param[2] * mdata.tstep
+  ddf   = mdata.param[2]
   pcorr = mdata.param[3]
 
   mdata.infilt = 0.0

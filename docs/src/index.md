@@ -41,7 +41,7 @@ frac = zeros(Float64, 1)
 
 param  = [257.238, 1.012, 88.235, 2.208]
 
-tstep = 1.0
+tstep = 24.0
 
 # Select model
 

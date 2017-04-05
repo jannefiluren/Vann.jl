@@ -9,7 +9,7 @@ using Vann
 # Some fake data
 
 frac = zeros(Float64, 1)
-tstep = 1.0
+tstep = 24.0
 
 # Create input for the model using the Hbv (see file hydro_hbv.jl)
 

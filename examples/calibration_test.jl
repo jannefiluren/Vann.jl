@@ -19,7 +19,7 @@ epot = epot_zero(date)
 snow_choice = TinBasic
 hydro_choice = Gr4j
 
-tstep = 1.0
+tstep = 24.0
 
 st_snow = eval(Expr(:call, snow_choice, tstep, frac))
 st_hydro = eval(Expr(:call, hydro_choice, tstep))

@@ -45,7 +45,7 @@ function run_dist(date_vec)
 
   # Initilize state variables
 
-  tstep = 1
+  tstep = 24.0
 
   st_snow  = [TinBasic(tstep, [1.0]) for i in 1:ncells]
   st_hydro = [Gr4j(tstep) for i in 1:ncells]

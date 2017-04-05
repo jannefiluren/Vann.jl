@@ -17,7 +17,7 @@ frac = zeros(Float64, 1);
 
 param = [100., 0.8, 0.05, 0.05, 0.01, 1., 2., 30., 2.5];
 
-tstep = 1.0
+tstep = 24.0
 
 # Select model
 
@@ -48,7 +48,7 @@ param_hydro = [100., 0.8, 0.05, 0.05, 0.01, 1., 2., 30., 2.5];
 
 # Select model
 
-tstep = 1.0
+tstep = 24.0
 
 st_snow  = TinBasic(tstep, param_snow, frac);
 st_hydro = Hbv(tstep, param_hydro);

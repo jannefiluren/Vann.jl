@@ -170,8 +170,8 @@ function snow_model(mdata::TinStandard)
   # Parameters
 
   tth     = mdata.param[1]
-  ddf_min = mdata.param[2] * mdata.tstep
-  ddf_max = mdata.param[3] * mdata.tstep
+  ddf_min = mdata.param[2]
+  ddf_max = mdata.param[3]
   whcap   = mdata.param[4]
   pcorr   = mdata.param[5]
 

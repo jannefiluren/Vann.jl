@@ -130,7 +130,7 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, nens
 
   # Initilize state variables
 
-  tstep = 1.0
+  tstep = 24.0
 
   st_snow  = [TinBasic(tstep, param_snow, frac) for i in 1:nens];
   st_hydro = [Gr4j(tstep, param_hydro) for i in 1:nens];

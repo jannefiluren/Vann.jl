@@ -23,7 +23,7 @@ epot = epot_zero(date)
 
 # Initilize model
 
-tstep = 3/24
+tstep = 3.0
 
 st_snow = eval(Expr(:call, snow_choice, tstep, frac))
 st_hydro = eval(Expr(:call, hydro_choice, tstep))

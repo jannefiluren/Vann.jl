@@ -1,5 +1,4 @@
 
-
 """
 The Gr4j type contains the state variables (st, st_uh1, st_uh2), the inputs
 (epot, infilt) for one time step, the parameters (param) and the time step
@@ -22,14 +21,13 @@ end
 
 """
     Gr4j(tstep)
-
 Constructor for GR4J with predefined state variables, parameters and inputs.
 The time step (tstep) is given as a fraction of one day. Thus, for hourly input
 data tstep should be set to 1/24.
 """
 function Gr4j(tstep)
 
-  n_ord = ceil(Int64, 20.0 / tstep)
+  n_ord = ceil(Int64, 20.0 * 24.0 / tstep)
 
   st      = zeros(Float64, 2)
   st_uh1  = zeros(Float64, n_ord)
@@ -44,8 +42,10 @@ function Gr4j(tstep)
   st[1] = 0.3 * param[1]
   st[2] = 0.5 * param[3]
 
-  UH1(ord_uh1, param[4]/tstep, 2.5)
-  UH2(ord_uh2, param[4]/tstep, 2.5)
+  D = 1.30434782 * (tstep / 24.0) + 1.19565217
+
+  UH1(ord_uh1, param[4] * 24.0 / tstep, D)
+  UH2(ord_uh2, param[4] * 24.0 / tstep, D)
 
   Gr4j(st, st_uh1, st_uh2, ord_uh1, ord_uh2, epot, infilt, param, tstep)
 
@@ -54,14 +54,13 @@ end
 
 """
     Gr4j(tstep, param)
-
 Constructor for GR4J with predefined state variables and inputs. The parameter
 values are given as input. The time step (tstep) is given as a fraction of one
 day. Thus, for hourly input data tstep should be set to 1/24.
 """
 function Gr4j(tstep, param)
 
-  n_ord = ceil(Int64, 20.0 / tstep)
+  n_ord = ceil(Int64, 20.0 * 24.0 / tstep)
 
   st      = zeros(Float64, 2)
   st_uh1  = zeros(Float64, n_ord)
@@ -72,8 +71,10 @@ function Gr4j(tstep, param)
   st[1] = 0.3 * param[1]
   st[2] = 0.5 * param[3]
 
-  UH1(ord_uh1, param[4]/tstep, 2.5)
-  UH2(ord_uh2, param[4]/tstep, 2.5)
+  D = 1.30434782 * (tstep / 24.0) + 1.19565217
+
+  UH1(ord_uh1, param[4] * 24.0 / tstep, D)
+  UH2(ord_uh2, param[4] * 24.0 / tstep, D)
 
   epot   = 0.0
   infilt = 0.0
@@ -85,7 +86,6 @@ end
 
 """
     init_states(mdata::Gr4j)
-
 Initilize the state variables of the model.
 """
 function init_states(mdata::Gr4j)
@@ -106,7 +106,6 @@ end
 
 """
     get_param_range(mdata::Gr4j)
-
 Get allowed parameter ranges for the calibration of the model.
 """
 function get_param_range(mdata::Gr4j)
@@ -118,7 +117,6 @@ end
 
 """
     assign_param(mdata::Gr4j, param::Array{Float64,1})
-
 Assign parameter values to the Gr4j type.
 """
 function assign_param(mdata::Gr4j, param::Array{Float64,1})
@@ -127,15 +125,16 @@ function assign_param(mdata::Gr4j, param::Array{Float64,1})
     mdata.param[i] = param[i]
   end
 
-  UH1(mdata.ord_uh1, param[4]/mdata.tstep, 2.5)
-  UH2(mdata.ord_uh2, param[4]/mdata.tstep, 2.5)
+  D = 1.30434782 * (mdata.tstep / 24.0) + 1.19565217
+
+  UH1(mdata.ord_uh1, param[4] * 24.0 / mdata.tstep, D)
+  UH2(mdata.ord_uh2, param[4] * 24.0 / mdata.tstep, D)
 
 end
 
 
 """
     enkf_hydro(mdata::Array{Gr4j,1}, obs_ens, q_sim)
-
 Implementation of the ensemble Kalman filter for the GR4J model.
 """
 function enkf_hydro(mdata::Array{Gr4j,1}, obs_ens, q_sim)
@@ -190,7 +189,6 @@ end
 
 """
     hydro_model(mdata::Gr4j)
-
 Propagate the model one time step and return simulated dischage.
 """
 function hydro_model(mdata::Gr4j)
@@ -203,6 +201,7 @@ function hydro_model(mdata::Gr4j)
   Param  = mdata.param
   P1     = mdata.infilt
   E      = mdata.epot
+  tstep  = mdata.tstep
 
   # Param[2] = Param[2] * mdata.tstep
 
@@ -245,10 +244,12 @@ function hydro_model(mdata::Gr4j)
     St[1] = 0.0
   end
 
+  scale_param = 25.62891 * (24.0 / tstep)
+
   Sr = St[1] / Param[1]
   Sr = Sr * Sr
   Sr = Sr * Sr
-  PERC = St[1] * (1.0-1.0/sqrt(sqrt(1.0 + Sr/25.62891)))
+  PERC = St[1] * (1.0-1.0/sqrt(sqrt(1.0 + Sr/scale_param)))
 
   St[1] = St[1] - PERC
 
@@ -281,8 +282,10 @@ function hydro_model(mdata::Gr4j)
 
   # Potential intercatchment semi-exchange
 
+  scale_param = (tstep / 24.0)
+
   Rr = St[2]/Param[3]
-  EXCH = Param[2]*Rr*Rr*Rr*sqrt(Rr)
+  EXCH = scale_param * Param[2]*Rr*Rr*Rr*sqrt(Rr)
 
   # Routing store
 
@@ -298,9 +301,9 @@ function hydro_model(mdata::Gr4j)
     St[2] = 0.0
   end
 
-  Rr = St[2] / Param[3]
-  Rr = Rr * Rr
-  Rr = Rr * Rr
+  scale_param = (24.0 / tstep)
+  Rr = St[2]^4 / (Param[3]^4 * scale_param)
+
   QR = St[2] * (1.0-1.0/sqrt(sqrt(1.0+Rr)))
 
   St[2] = St[2] - QR

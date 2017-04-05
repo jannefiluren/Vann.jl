@@ -26,11 +26,9 @@ epot = epot_monthly(date)
 
 # Initilize model
 
-tstep = 3/24
+tstep = 3.0
 
-
-epot = epot * tstep
-
+epot = epot * tstep / 24.0
 
 st_hydro = eval(Expr(:call, hydro_choice, tstep))
 

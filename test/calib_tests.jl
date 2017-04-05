@@ -22,7 +22,7 @@ epot = transpose(epot)
 
 frac = zeros(Float64, 1)
 
-tstep = 1.0
+tstep = 24.0
 
 # Select model
 
@@ -65,7 +65,7 @@ filename = joinpath(dirname(@__FILE__), "../data/atnasjo")
 
 date, tair, prec, q_obs, frac = load_data(filename, "Q_ref.txt")
 
-tstep = 1.0
+tstep = 24.0
 
 # Compute potential evapotranspiration
 
