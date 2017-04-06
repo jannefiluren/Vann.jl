@@ -34,7 +34,7 @@ The models are written in state-space form. Calling the function below runs the
 model for one time step.
 
 ```@docs
-hydro_model(mdata::Gr4j)
+run_timestep(mdata::Gr4j)
 ```
 
 ## HBV
@@ -68,5 +68,5 @@ The models are written in state-space form. Calling the function below runs the
 model for one time step.
 
 ```@docs
-hydro_model(mdata::Hbv)
+run_timestep(mdata::Hbv)
 ```

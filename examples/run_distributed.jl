@@ -73,7 +73,7 @@ function run_dist(date_vec)
 
       # Run snow model
 
-      snow_model(st_snow[icell])
+      run_timestep(st_snow[icell])
 
       # Get input to hydrological routing model
 
@@ -82,7 +82,7 @@ function run_dist(date_vec)
 
       # Run hydrological routing model
 
-      q_sim[icell] = hydro_model(st_hydro[icell])
+      q_sim[icell] = run_timestep(st_hydro[icell])
 
     end
 

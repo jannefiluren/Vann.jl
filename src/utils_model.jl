@@ -14,7 +14,7 @@ function run_model(st_hydro::Hydro, prec, epot)
 
     get_input(st_hydro, prec, epot, itime)
 
-    q_sim[itime] = hydro_model(st_hydro)
+    q_sim[itime] = run_timestep(st_hydro)
 
   end
 
@@ -39,11 +39,11 @@ function run_model(st_snow, st_hydro, date, tair, prec, epot)
 
     get_input(st_snow, prec, tair, date, itime)
 
-    snow_model(st_snow)
+    run_timestep(st_snow)
 
     get_input(st_snow, st_hydro, epot, itime)
 
-    q_sim[itime] = hydro_model(st_hydro)
+    q_sim[itime] = run_timestep(st_hydro)
 
   end
 
@@ -69,7 +69,7 @@ function run_model(st_snow, date, tair, prec)
 
     get_input(st_snow, prec, tair, date, itime)
 
-    snow_model(st_snow)
+    run_timestep(st_snow)
 
     infilt_sim[itime] = st_snow.infilt
 

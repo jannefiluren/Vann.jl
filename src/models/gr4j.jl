@@ -188,10 +188,10 @@ end
 
 
 """
-    hydro_model(mdata::Gr4j)
+    run_timestep(mdata::Gr4j)
 Propagate the model one time step and return simulated dischage.
 """
-function hydro_model(mdata::Gr4j)
+function run_timestep(mdata::Gr4j)
 
   St     = mdata.st
   StUH1  = mdata.st_uh1

@@ -201,11 +201,11 @@ end
 
 
 """
-    hydro_model(mdata::Hbv)
+    run_timestep(mdata::Hbv)
 
 Propagate the model one time step and return simulated dischage.
 """
-function hydro_model(mdata::Hbv)
+function run_timestep(mdata::Hbv)
 
   # mdata and parameters
 

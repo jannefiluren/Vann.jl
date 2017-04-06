@@ -1,7 +1,7 @@
 # Snow models
 
-The following snow models are currently included in the package. The can be
-combined with any of the hydrological models.
+The package includes different snow models.
+
 
 ## TinBasic
 
@@ -26,12 +26,6 @@ get_param_range(mdata::TinBasic)
 assign_param(mdata::TinBasic, param::Array{Float64,1})
 ```
 
-The models are written in state-space form. Calling the function below runs the
-model for one time step.
-
-```docs
-snow_model(mdata::TinBasic)
-```
 ## TinStandard
 
 A an enhanced implementation of a temperature index snow model including a
@@ -60,5 +54,5 @@ The models are written in state-space form. Calling the function below runs the
 model for one time step.
 
 ```docs
-snow_model(mdata::TinStandard)
+run_timestep(mdata::TinStandard)
 ```

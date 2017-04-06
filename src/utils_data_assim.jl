@@ -57,11 +57,11 @@ function particle_filter(st_snow, st_hydro, prec, tair, epot, q_obs, npart)
 
             perturb_input(st_snow[ipart], prec, tair, itime)
 
-            snow_model(st_snow[ipart])
+            run_timestep(st_snow[ipart])
 
             get_input(st_snow[ipart], st_hydro[ipart], epot, itime)
 
-            q_sim[ipart] = hydro_model(st_hydro[ipart])
+            q_sim[ipart] = run_timestep(st_hydro[ipart])
 
         end
 
@@ -148,11 +148,11 @@ function enkf_filter(st_snow, st_hydro, prec, tair, epot, q_obs, nens)
 
       perturb_input(st_snow[iens], prec, tair, itime)
 
-      snow_model(st_snow[iens])
+      run_timestep(st_snow[iens])
 
       get_input(st_snow[iens], st_hydro[iens], epot, itime)
 
-      q_sim[iens] = hydro_model(st_hydro[iens])
+      q_sim[iens] = run_timestep(st_hydro[iens])
 
     end
 

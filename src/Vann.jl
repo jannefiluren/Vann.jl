@@ -10,7 +10,7 @@ abstract Snow
 export Hbv, Gr4j
 export TinBasic, TinStandard
 
-export hydro_model, snow_model
+export run_timestep, run_timestep
 export load_data, crop_data
 export get_param_range, init_states
 export run_model_calib, calib_wrapper

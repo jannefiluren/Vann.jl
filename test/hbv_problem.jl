@@ -17,10 +17,10 @@ st_hbv = Hbv(tstep)
 
 # Run the model for one step and measure time + memory
 
-hydro_model(st_hbv)
+run_timestep(st_hbv)
 
-@time hydro_model(st_hbv)
+@time run_timestep(st_hbv)
 
-@time hydro_model(st_hbv)
+@time run_timestep(st_hbv)
 
-@time hydro_model(st_hbv)
+@time run_timestep(st_hbv)

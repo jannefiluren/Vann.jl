@@ -90,11 +90,11 @@ function run_filter(prec, tair, epot, q_obs, param_snow, param_hydro, frac, npar
 
       perturb_input(st_snow[ipart], prec, tair, itime);
 
-      snow_model(st_snow[ipart]);
+      run_timestep(st_snow[ipart]);
 
       get_input(st_snow[ipart], st_hydro[ipart], epot, itime);
 
-      q_sim[ipart] = hydro_model(st_hydro[ipart]);
+      q_sim[ipart] = run_timestep(st_hydro[ipart]);
 
     end
 

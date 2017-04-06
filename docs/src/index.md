@@ -12,15 +12,15 @@ procedures for updating the state variables of the hydrological models.
 
 ## Installation
 
-The package and so can be installed using:
+Install the package using:
 
 ```julia
 Pkg.clone("https://github.com/jmgnve/Vann.jl.git")
 ```
 
-# Example
+## Example
 
-This short example runs the model in lumped mode.
+This short example describes how to run one the of the models.
 
 ```@example
 
@@ -57,5 +57,4 @@ nothing # hide
 
 Input variables depending on the length of the time step, such as precipitation,
 should given in units *mm/timestep* For all models, the time step should be
-relative to daily inputs. Thus, if hourly input data is used, the model time
-step should equal 1/24.
+given in hours.

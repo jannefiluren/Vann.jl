@@ -161,11 +161,11 @@ end
 
 
 """
-    snow_model(mdata::TinStandard)
+    run_timestep(mdata::TinStandard)
 
 Propagate the model one time step and compute simulated snowpack dischage.
 """
-function snow_model(mdata::TinStandard)
+function run_timestep(mdata::TinStandard)
 
   # Parameters
 
