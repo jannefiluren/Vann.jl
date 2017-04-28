@@ -116,14 +116,14 @@ end
 
 function get_input(st_hydro::Hydro, prec, epot, itime)
 
-  st_hydro.infilt = prec[itime]
-  st_hydro.epot   = epot[itime]
+  st_hydro.prec = prec[itime]
+  st_hydro.epot = epot[itime]
 
 end
 
 function get_input(st_snow::Snow, st_hydro::Hydro, epot, itime)
 
-  st_hydro.infilt = st_snow.infilt
-  st_hydro.epot   = epot[itime]
+  st_hydro.prec = st_snow.q_sim
+  st_hydro.epot = epot[itime]
 
 end

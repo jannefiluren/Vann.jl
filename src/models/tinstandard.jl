@@ -12,7 +12,7 @@ type TinStandard <: Snow
   date::DateTime
   swe::Array{Float64,1}
   lw::Array{Float64,1}
-  infilt::Float64
+  q_sim::Float64
   param::Array{Float64,1}
   frac::Array{Float64,1}
   tstep::Float64
@@ -36,10 +36,10 @@ function TinStandard(tstep, frac)
   date   = DateTime()
   swe    = zeros(Float64, nzones)
   lw     = zeros(Float64, nzones)
-  infilt = 0.0
+  q_sim  = 0.0
   param  = zeros(Float64, 5)
 
-  TinStandard(prec, tair, date, swe, lw, infilt, param, frac, tstep)
+  TinStandard(prec, tair, date, swe, lw, q_sim, param, frac, tstep)
 
 end
 
@@ -60,9 +60,9 @@ function TinStandard(tstep, param, frac)
   date   = DateTime()
   swe    = zeros(Float64, nzones)
   lw     = zeros(Float64, nzones)
-  infilt = 0.0
+  q_sim  = 0.0
 
-  TinStandard(prec, tair, date, swe, lw, infilt, param, frac, tstep)
+  TinStandard(prec, tair, date, swe, lw, q_sim, param, frac, tstep)
 
 end
 
@@ -177,7 +177,7 @@ function run_timestep(mdata::TinStandard)
 
   ddf = compute_ddf(mdata.date, ddf_min, ddf_max)
 
-  mdata.infilt = 0.0
+  mdata.q_sim = 0.0
 
   for i in eachindex(mdata.swe)
 
@@ -226,13 +226,13 @@ function run_timestep(mdata::TinStandard)
 
     lwmax = fw * whcap / (1 - whcap)
 
-    infilt = lw - lwmax
+    q_sim = lw - lwmax
 
-    if infilt < 0.
-        infilt = 0.
+    if q_sim < 0.
+        q_sim = 0.
     end
 
-    lw = lw - infilt
+    lw = lw - q_sim
 
     # Massbalance for snowpack
 
@@ -242,7 +242,7 @@ function run_timestep(mdata::TinStandard)
 
     mdata.swe[i] = swe
     mdata.lw[i] = lw
-    mdata.infilt += mdata.frac[i] * infilt
+    mdata.q_sim += mdata.frac[i] * q_sim
 
     end
 

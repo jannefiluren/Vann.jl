@@ -1,80 +1,133 @@
 # Model wrapper for hydrological response model (e.g. Gr4j or HBV)
 
-function run_model(st_hydro::Hydro, prec, epot)
+function run_model(mdata_hydro::Hydro, prec, epot; return_all = false)
 
   # Number of time steps
 
   ntimes = size(prec, 2)
 
-  # Run model
+  # Allocate output arrays
 
   q_sim = zeros(Float64, ntimes)
 
+  if return_all == true
+    hydro_out = [mdata_hydro for i in 1:ntimes]
+  end
+
+  # Run time loop
+
   for itime in 1:ntimes
 
-    get_input(st_hydro, prec, epot, itime)
+    get_input(mdata_hydro, prec, epot, itime)
 
-    q_sim[itime] = run_timestep(st_hydro)
+    run_timestep(mdata_hydro)
+
+    q_sim[itime] = mdata_hydro.q_sim
+
+    if return_all == true
+      hydro_out[itime] = deepcopy(mdata_hydro)
+    end
 
   end
 
-  return(q_sim)
+  # Return outputs
+
+  if return_all == false
+    return q_sim
+  else
+    return q_sim, hydro_out
+  end
 
 end
 
 
 # Model wrapper for snow model and hydrological response model
 
-function run_model(st_snow, st_hydro, date, tair, prec, epot)
+function run_model(mdata_snow, mdata_hydro, date, tair, prec, epot; return_all = false)
 
   # Number of time steps
 
   ntimes = size(prec, 2)
 
-  # Run model
+  # Allocate output arrays
 
   q_sim = zeros(Float64, ntimes)
 
+  if return_all == true
+    snow_out  = [mdata_snow for i in 1:ntimes]
+    hydro_out = [mdata_hydro for i in 1:ntimes]
+  end
+
+  # Run time loop
+
   for itime in 1:ntimes
 
-    get_input(st_snow, prec, tair, date, itime)
+    get_input(mdata_snow, prec, tair, date, itime)
 
-    run_timestep(st_snow)
+    run_timestep(mdata_snow)
 
-    get_input(st_snow, st_hydro, epot, itime)
+    get_input(mdata_snow, mdata_hydro, epot, itime)
 
-    q_sim[itime] = run_timestep(st_hydro)
+    run_timestep(mdata_hydro)
+
+    q_sim[itime] = mdata_hydro.q_sim
+
+    if return_all == true
+      snow_out[itime]  = deepcopy(mdata_snow)
+      hydro_out[itime] = deepcopy(mdata_hydro)
+    end
 
   end
 
-  return(q_sim)
+  # Return outputs
+
+  if return_all == false
+    return q_sim
+  else
+    return q_sim, snow_out, hydro_out
+  end
 
 end
 
 
 # Model wrapper for snow model
 
-function run_model(st_snow, date, tair, prec)
+function run_model(mdata_snow, date, tair, prec)
 
   # Number of time steps
 
   ntimes = size(prec, 2)
-  nzones = length(st_snow.swe)
 
-  # Run model
+  # Allocate output arrays
 
-  infilt_sim = zeros(ntimes)
+  q_sim = zeros(Float64, ntimes)
+
+  if return_all == true
+    snow_out  = [mdata_snow for i in 1:ntimes]
+  end
+
+  # Run time loop
 
   for itime in 1:ntimes
 
-    get_input(st_snow, prec, tair, date, itime)
+    get_input(mdata_snow, prec, tair, date, itime)
 
-    run_timestep(st_snow)
+    run_timestep(mdata_snow)
 
-    infilt_sim[itime] = st_snow.infilt
+    q_sim[itime] = mdata_snow.q_sim
+
+    if return_all == true
+      snow_out[itime]  = deepcopy(mdata_snow)
+    end
 
   end
 
-  return infilt_sim
+  # Return outputs
+
+  if return_all == false
+    return q_sim
+  else
+    return q_sim, snow_out
+  end
 
 end

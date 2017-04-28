@@ -2,7 +2,7 @@
 
 """
 The Hbv type contains the state variables (sm, suz, slz, st_uh), the inputs
-(epot, infilt) for one time step, the parameters (param) and the time step
+(epot, prec) for one time step, the parameters (param) and the time step
 length (tstep) for the HBV model.
 """
 type Hbv <: Hydro
@@ -13,7 +13,8 @@ type Hbv <: Hydro
   st_uh::Array{Float64,1}
   hbv_ord::Array{Float64,1}
   epot::Float64
-  infilt::Float64
+  prec::Float64
+  q_sim::Float64
   param::Array{Float64,1}
   tstep::Float64
 
@@ -46,10 +47,14 @@ function Hbv(tstep)
 
   # Inputs
 
-  epot   = 0.0
-  infilt = 0.0
+  epot = 0.0
+  prec = 0.0
 
-  Hbv(sm, suz, slz, st_uh, hbv_ord, epot, infilt, param, tstep)
+  # Outputs
+
+  q_sim = 0.0
+
+  Hbv(sm, suz, slz, st_uh, hbv_ord, epot, prec, q_sim, param, tstep)
 
 end
 
@@ -76,10 +81,14 @@ function Hbv(tstep, param)
 
   # Inputs
 
-  epot   = 0.0
-  infilt = 0.0
+  epot = 0.0
+  prec = 0.0
 
-  Hbv(sm, suz, slz, st_uh, hbv_ord, epot, infilt, param, tstep)
+  # Outputs
+
+  q_sim = 0.0
+
+  Hbv(sm, suz, slz, st_uh, hbv_ord, epot, prec, q_sim, param, tstep)
 
 end
 
@@ -93,12 +102,12 @@ Initilize the state variables of the model.
 
 function init_states(mdata::Hbv)
 
-  mdata.sm      = 0.
-  mdata.suz     = 0.
-  mdata.slz     = 0.
+  mdata.sm      = 0.0
+  mdata.suz     = 0.0
+  mdata.slz     = 0.0
 
   for i in eachindex(mdata.st_uh)
-    mdata.st_uh[i] = 0.
+    mdata.st_uh[i] = 0.0
   end
 
 end
@@ -215,7 +224,7 @@ function run_timestep(mdata::Hbv)
   st_uh = mdata.st_uh
   hbv_ord = mdata.hbv_ord
   epot = mdata.epot
-  infilt = mdata.infilt
+  prec = mdata.prec
 
   fc     = mdata.param[1]
   lp     = mdata.param[2]
@@ -229,7 +238,7 @@ function run_timestep(mdata::Hbv)
 
   # Input for current time step
 
-  prec_now = infilt
+  prec_now = prec
   epot_now = epot
 
   # Soil moisture zone (assume no evaporation during rainfall)
@@ -335,10 +344,9 @@ function run_timestep(mdata::Hbv)
   mdata.suz = suz
   mdata.slz = slz
   mdata.st_uh = st_uh
+  mdata.q_sim = q_tot
 
-  # Return discharge
-
-  return(q_tot)
+  return nothing
 
 end
 

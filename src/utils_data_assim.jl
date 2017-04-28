@@ -61,7 +61,9 @@ function particle_filter(st_snow, st_hydro, prec, tair, epot, q_obs, npart)
 
             get_input(st_snow[ipart], st_hydro[ipart], epot, itime)
 
-            q_sim[ipart] = run_timestep(st_hydro[ipart])
+            run_timestep(st_hydro[ipart])
+
+            q_sim[ipart] = st_hydro[ipart].q_sim
 
         end
 
@@ -152,7 +154,9 @@ function enkf_filter(st_snow, st_hydro, prec, tair, epot, q_obs, nens)
 
       get_input(st_snow[iens], st_hydro[iens], epot, itime)
 
-      q_sim[iens] = run_timestep(st_hydro[iens])
+      run_timestep(st_hydro[iens])
+
+      q_sim[iens] = st_hydro[iens].q_sim
 
     end
 

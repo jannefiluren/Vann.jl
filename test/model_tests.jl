@@ -95,7 +95,7 @@ epot = epot_zero(date)
 
 # Parameters
 
-param_snow  = [0.0, 3.69, 3.69, 0., 1.02]
+param_snow  = [0.0, 3.69, 3.69, 0.0, 1.02]
 param_hydro = [74.59, 0.81, 214.98, 1.24]
 
 # Select model

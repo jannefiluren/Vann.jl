@@ -77,8 +77,8 @@ function run_dist(date_vec)
 
       # Get input to hydrological routing model
 
-      st_hydro[icell].infilt = st_snow[icell].infilt
-      st_hydro[icell].epot   = epot[icell]
+      st_hydro[icell].prec = st_snow[icell].q_sim
+      st_hydro[icell].epot = epot[icell]
 
       # Run hydrological routing model
 

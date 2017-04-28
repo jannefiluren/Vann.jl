@@ -10,7 +10,7 @@ type TinBasic <: Snow
   prec::Array{Float64,1}
   tair::Array{Float64,1}
   swe::Array{Float64,1}
-  infilt::Float64
+  q_sim::Float64
   param::Array{Float64,1}
   frac::Array{Float64,1}
   tstep::Float64
@@ -32,10 +32,10 @@ function TinBasic(tstep, frac)
   prec   = zeros(Float64, nzones)
   tair   = zeros(Float64, nzones)
   swe    = zeros(Float64, nzones)
-  infilt = 0.0
+  q_sim  = 0.0
   param  = [0.0, 3.0, 1.0]
 
-  TinBasic(prec, tair, swe, infilt, param, frac, tstep)
+  TinBasic(prec, tair, swe, q_sim, param, frac, tstep)
 
 end
 
@@ -54,9 +54,9 @@ function TinBasic(tstep, param, frac)
   prec   = zeros(Float64, nzones)
   tair   = zeros(Float64, nzones)
   swe    = zeros(Float64, nzones)
-  infilt = 0.0
+  q_sim  = 0.0
 
-  TinBasic(prec, tair, swe, infilt, param, frac, tstep)
+  TinBasic(prec, tair, swe, q_sim, param, frac, tstep)
 
 end
 
@@ -157,7 +157,7 @@ function run_timestep(mdata::TinBasic)
   ddf   = mdata.param[2]
   pcorr = mdata.param[3]
 
-  mdata.infilt = 0.0
+  mdata.q_sim = 0.0
 
   for i in eachindex(mdata.swe)
 
@@ -178,9 +178,9 @@ function run_timestep(mdata::TinBasic)
     mdata.swe[i] += psolid
     mdata.swe[i] -= M
 
-    # Compute infiltration
+    # Compute snowpack runoff
 
-    mdata.infilt += mdata.frac[i]*(M + pliquid)
+    mdata.q_sim += mdata.frac[i]*(M + pliquid)
 
   end
 

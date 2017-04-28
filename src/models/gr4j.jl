@@ -1,7 +1,7 @@
 
 """
 The Gr4j type contains the state variables (st, st_uh1, st_uh2), the inputs
-(epot, infilt) for one time step, the parameters (param) and the time step
+(epot, prec) for one time step, the parameters (param) and the time step
 length (tstep) for the GR4J model.
 """
 type Gr4j <: Hydro
@@ -12,7 +12,8 @@ type Gr4j <: Hydro
   ord_uh1::Array{Float64,1}
   ord_uh2::Array{Float64,1}
   epot::Float64
-  infilt::Float64
+  prec::Float64
+  q_sim::Float64
   param::Array{Float64,1}
   tstep::Float64
 
@@ -35,8 +36,11 @@ function Gr4j(tstep)
   ord_uh1 = zeros(Float64, n_ord)
   ord_uh2 = zeros(Float64, 2 * n_ord)
 
-  epot   = 0.0
-  infilt = 0.0
+  epot = 0.0
+  prec = 0.0
+
+  q_sim = 0.0
+
   param  = [257.238, 1.012, 88.235, 2.208]
 
   st[1] = 0.3 * param[1]
@@ -47,7 +51,7 @@ function Gr4j(tstep)
   UH1(ord_uh1, param[4] * 24.0 / tstep, D)
   UH2(ord_uh2, param[4] * 24.0 / tstep, D)
 
-  Gr4j(st, st_uh1, st_uh2, ord_uh1, ord_uh2, epot, infilt, param, tstep)
+  Gr4j(st, st_uh1, st_uh2, ord_uh1, ord_uh2, epot, prec, q_sim, param, tstep)
 
 end
 
@@ -76,10 +80,12 @@ function Gr4j(tstep, param)
   UH1(ord_uh1, param[4] * 24.0 / tstep, D)
   UH2(ord_uh2, param[4] * 24.0 / tstep, D)
 
-  epot   = 0.0
-  infilt = 0.0
+  epot = 0.0
+  prec = 0.0
 
-  Gr4j(st, st_uh1, st_uh2, ord_uh1, ord_uh2, epot, infilt, param, tstep)
+  q_sim = 0.0
+
+  Gr4j(st, st_uh1, st_uh2, ord_uh1, ord_uh2, epot, prec, q_sim, param, tstep)
 
 end
 
@@ -131,6 +137,27 @@ function assign_param(mdata::Gr4j, param::Array{Float64,1})
   UH2(mdata.ord_uh2, param[4] * 24.0 / mdata.tstep, D)
 
 end
+
+
+"""
+    get_states(hydro_out::Array{Gr4j,1})
+Get state variables
+"""
+function get_states(hydro_out::Array{Gr4j,1})
+
+  states = zeros(length(hydro_out), 2)
+
+  for i in 1:length(hydro_out)
+
+    states[i, 1] = hydro_out[i].st[1]
+    states[i, 2] = hydro_out[i].st[2]
+
+  end
+
+  return states
+
+end
+
 
 
 """
@@ -199,11 +226,9 @@ function run_timestep(mdata::Gr4j)
   OrdUH1 = mdata.ord_uh1
   OrdUH2 = mdata.ord_uh2
   Param  = mdata.param
-  P1     = mdata.infilt
+  P1     = mdata.prec
   E      = mdata.epot
   tstep  = mdata.tstep
-
-  # Param[2] = Param[2] * mdata.tstep
 
   A = Param[1]
   B = 0.9
@@ -331,8 +356,9 @@ function run_timestep(mdata::Gr4j)
   mdata.st_uh2  = StUH2
   mdata.ord_uh1 = OrdUH1
   mdata.ord_uh2 = OrdUH2
+  mdata.q_sim   = Q
 
-  return(Q)
+  return nothing
 
 end
 

@@ -26,7 +26,9 @@ function calib_wrapper(param, st_hydro, prec, epot, q_obs, q_sim)
 
         get_input(st_hydro, prec, epot, itime)
 
-        q_sim[itime] = run_timestep(st_hydro)
+        run_timestep(st_hydro)
+
+        q_sim[itime] = st_hydro.q_sim
 
     end
 
@@ -69,7 +71,9 @@ function calib_wrapper(param, st_snow, st_hydro, date, tair, prec, epot, q_obs, 
 
         get_input(st_snow, st_hydro, epot, itime)
 
-        q_sim[itime] = run_timestep(st_hydro)
+        run_timestep(st_hydro)
+
+        q_sim[itime] = st_hydro.q_sim
 
     end
 

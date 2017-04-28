@@ -16,7 +16,7 @@ epot = epot_zero(date)
 
 # Model choices
 
-snow_choice = TinBasic
+snow_choice = TinStandard
 hydro_choice = Gr4j
 
 tstep = 24.0
@@ -38,21 +38,9 @@ st_hydro = eval(Expr(:call, hydro_choice, tstep, param_hydro))
 
 # Run model with best parameter set
 
-q_sim = run_model(st_snow, st_hydro, date, tair, prec, epot)
+q_sim, snow_out, hydro_out = run_model(st_snow, st_hydro, date, tair, prec, epot; return_all = true)
 
-# Store results in data frame
+# Plot results
 
-q_obs = round(q_obs, 2)
-q_sim = round(q_sim, 2)
-
-df_res = DataFrame(date = date, q_sim = q_sim, q_obs = q_obs)
-
-# Plot results using rcode
-
-fig = plt[:figure](figsize = (12,7))
-
-plt[:style][:use]("ggplot")
-
-plt[:plot](df_res[:date], df_res[:q_obs], linewidth = 1.2, color = "k", label = "Observed")
-plt[:plot](df_res[:date], df_res[:q_sim], linewidth = 1, color = "r", label = "Simulated")
-plt[:legend]()
+plot_sim(snow_out)
+plot_sim(hydro_out)
