@@ -32,8 +32,10 @@ epot = epot_zero(date)
 
 tstep = 24.0
 
-st_snow = eval(Expr(:call, snow_choice, tstep, frac))
-st_hydro = eval(Expr(:call, hydro_choice, tstep))
+time = date[1]
+
+st_snow = eval(Expr(:call, snow_choice, tstep, time, frac))
+st_hydro = eval(Expr(:call, hydro_choice, tstep, time))
 
 # Run calibration
 
@@ -41,8 +43,8 @@ param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, e
 
 # Run model and filter
 
-st_snow = eval(Expr(:call, snow_choice, tstep, param_snow, frac))
-st_hydro = eval(Expr(:call, hydro_choice, tstep, param_hydro))
+st_snow = eval(Expr(:call, snow_choice, tstep, time, param_snow, frac))
+st_hydro = eval(Expr(:call, hydro_choice, tstep, time, param_hydro))
 
 q_res = eval(Expr(:call, filter_choice, st_snow, st_hydro, prec, tair, epot, q_obs, nens))
 

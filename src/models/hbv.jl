@@ -17,18 +17,19 @@ type Hbv <: Hydro
   q_sim::Float64
   param::Array{Float64,1}
   tstep::Float64
+  time::DateTime
 
 end
 
 
 """
-    Hbv(tstep)
+    Hbv(tstep, time)
 
 Constructor for HBV with predefined state variables, parameters and inputs.
 The time step (tstep) is given as a fraction of one day. Thus, for hourly input
 data tstep should be set to 1/24.
 """
-function Hbv(tstep)
+function Hbv(tstep, time)
 
   # Parameters: fc, lp, k0, k1, k2, beta, perc, ulz, maxbas
 
@@ -54,19 +55,19 @@ function Hbv(tstep)
 
   q_sim = 0.0
 
-  Hbv(sm, suz, slz, st_uh, hbv_ord, epot, prec, q_sim, param, tstep)
+  Hbv(sm, suz, slz, st_uh, hbv_ord, epot, prec, q_sim, param, tstep, time)
 
 end
 
 
 """
-    Hbv(tstep, param)
+    Hbv(tstep, time, param)
 
 Constructor for HBV with predefined state variables and inputs. The parameter
 values are given as input. The time step (tstep) is given as a fraction of one
 day. Thus, for hourly input data tstep should be set to 1/24.
 """
-function Hbv(tstep, param)
+function Hbv(tstep, time, param)
 
   # Unit hydrograph ordinates
 
@@ -88,7 +89,7 @@ function Hbv(tstep, param)
 
   q_sim = 0.0
 
-  Hbv(sm, suz, slz, st_uh, hbv_ord, epot, prec, q_sim, param, tstep)
+  Hbv(sm, suz, slz, st_uh, hbv_ord, epot, prec, q_sim, param, tstep, time)
 
 end
 
@@ -338,11 +339,12 @@ function run_timestep(mdata::Hbv)
 
   q_tot = st_uh[1]
 
-  # Assign states
+  # Update struct
 
-  mdata.sm = sm
-  mdata.suz = suz
-  mdata.slz = slz
+  mdata.time  += Dates.Hour(tstep)
+  mdata.sm    = sm
+  mdata.suz   = suz
+  mdata.slz   = slz
   mdata.st_uh = st_uh
   mdata.q_sim = q_tot
 

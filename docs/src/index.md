@@ -43,9 +43,11 @@ param  = [257.238, 1.012, 88.235, 2.208]
 
 tstep = 24.0
 
+time = DateTime(2000,1,1)
+
 # Select model
 
-st_gr4j = Gr4j(tstep, param)
+st_gr4j = Gr4j(tstep, time, param)
 
 # Run model
 

@@ -25,8 +25,10 @@ epot = epot_zero(date)
 
 tstep = 3.0
 
-st_snow = eval(Expr(:call, snow_choice, tstep, frac))
-st_hydro = eval(Expr(:call, hydro_choice, tstep))
+time = date[1]
+
+st_snow = eval(Expr(:call, snow_choice, tstep, time, frac))
+st_hydro = eval(Expr(:call, hydro_choice, tstep, time))
 
 # Run calibration
 
@@ -37,8 +39,8 @@ println(param_hydro)
 
 # Reinitilize model
 
-st_snow = eval(Expr(:call, snow_choice, tstep, param_snow, frac))
-st_hydro = eval(Expr(:call, hydro_choice, tstep, param_hydro))
+st_snow = eval(Expr(:call, snow_choice, tstep, time, param_snow, frac))
+st_hydro = eval(Expr(:call, hydro_choice, tstep, time, param_hydro))
 
 # Run model with best parameter set
 

@@ -28,9 +28,11 @@ epot = epot_monthly(date)
 
 tstep = 3.0
 
+time = date[1]
+
 epot = epot * tstep / 24.0
 
-st_hydro = eval(Expr(:call, hydro_choice, tstep))
+st_hydro = eval(Expr(:call, hydro_choice, tstep, time))
 
 # Run calibration
 
@@ -40,7 +42,7 @@ println(param_hydro)
 
 # Reinitilize model
 
-st_hydro = eval(Expr(:call, hydro_choice, tstep, param_hydro))
+st_hydro = eval(Expr(:call, hydro_choice, tstep, time, param_hydro))
 
 # Run model with best parameter set
 

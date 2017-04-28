@@ -16,6 +16,7 @@ type Gr4j <: Hydro
   q_sim::Float64
   param::Array{Float64,1}
   tstep::Float64
+  time::DateTime
 
 end
 
@@ -26,7 +27,7 @@ Constructor for GR4J with predefined state variables, parameters and inputs.
 The time step (tstep) is given as a fraction of one day. Thus, for hourly input
 data tstep should be set to 1/24.
 """
-function Gr4j(tstep)
+function Gr4j(tstep, time)
 
   n_ord = ceil(Int64, 20.0 * 24.0 / tstep)
 
@@ -51,18 +52,18 @@ function Gr4j(tstep)
   UH1(ord_uh1, param[4] * 24.0 / tstep, D)
   UH2(ord_uh2, param[4] * 24.0 / tstep, D)
 
-  Gr4j(st, st_uh1, st_uh2, ord_uh1, ord_uh2, epot, prec, q_sim, param, tstep)
+  Gr4j(st, st_uh1, st_uh2, ord_uh1, ord_uh2, epot, prec, q_sim, param, tstep, time)
 
 end
 
 
 """
-    Gr4j(tstep, param)
+    Gr4j(tstep, time, param)
 Constructor for GR4J with predefined state variables and inputs. The parameter
 values are given as input. The time step (tstep) is given as a fraction of one
 day. Thus, for hourly input data tstep should be set to 1/24.
 """
-function Gr4j(tstep, param)
+function Gr4j(tstep, time, param)
 
   n_ord = ceil(Int64, 20.0 * 24.0 / tstep)
 
@@ -85,7 +86,7 @@ function Gr4j(tstep, param)
 
   q_sim = 0.0
 
-  Gr4j(st, st_uh1, st_uh2, ord_uh1, ord_uh2, epot, prec, q_sim, param, tstep)
+  Gr4j(st, st_uh1, st_uh2, ord_uh1, ord_uh2, epot, prec, q_sim, param, tstep, time)
 
 end
 
@@ -351,6 +352,9 @@ function run_timestep(mdata::Gr4j)
     Q = 0.0
   end
 
+  # Update struct
+
+  mdata.time    += Dates.Hour(tstep)
   mdata.st      = St
   mdata.st_uh1  = StUH1
   mdata.st_uh2  = StUH2

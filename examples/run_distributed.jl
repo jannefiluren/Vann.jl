@@ -47,8 +47,10 @@ function run_dist(date_vec)
 
   tstep = 24.0
 
-  st_snow  = [TinBasic(tstep, [1.0]) for i in 1:ncells]
-  st_hydro = [Gr4j(tstep) for i in 1:ncells]
+  time = date_vec[1]
+
+  st_snow  = [TinBasic(tstep, time, [1.0]) for i in 1:ncells]
+  st_hydro = [Gr4j(tstep, time) for i in 1:ncells]
 
   # Allocate output arrays
 
@@ -82,7 +84,9 @@ function run_dist(date_vec)
 
       # Run hydrological routing model
 
-      q_sim[icell] = run_timestep(st_hydro[icell])
+      run_timestep(st_hydro[icell])
+
+      q_sim[icell] = st_hydro[icell].q_sim
 
     end
 

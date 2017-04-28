@@ -14,19 +14,20 @@ type TinBasic <: Snow
   param::Array{Float64,1}
   frac::Array{Float64,1}
   tstep::Float64
+  time::DateTime
 
 end
 
 
 """
-    TinBasic(tstep, frac)
+    TinBasic(tstep, time, frac)
 
 Constructor for TinBasic with predefined state variables, parameters and inputs.
 The time step (tstep) is given as a fraction of one day. Thus, for hourly input
 data tstep should be set to 1/24. The fraction of elevation bands should sum
 up to unity.
 """
-function TinBasic(tstep, frac)
+function TinBasic(tstep, time, frac)
 
   nzones = length(frac)
   prec   = zeros(Float64, nzones)
@@ -35,20 +36,20 @@ function TinBasic(tstep, frac)
   q_sim  = 0.0
   param  = [0.0, 3.0, 1.0]
 
-  TinBasic(prec, tair, swe, q_sim, param, frac, tstep)
+  TinBasic(prec, tair, swe, q_sim, param, frac, tstep, time)
 
 end
 
 
 """
-    TinBasic(tstep, param, frac)
+    TinBasic(tstep, time, param, frac)
 
 Constructor for TinBasic with predefined state variables and inputs.
 The time step (tstep) is given as a fraction of one day. Thus, for hourly input
 data tstep should be set to 1/24. The fraction of elevation bands should sum
 up to unity.
 """
-function TinBasic(tstep, param, frac)
+function TinBasic(tstep, time, param, frac)
 
   nzones = length(frac)
   prec   = zeros(Float64, nzones)
@@ -56,7 +57,7 @@ function TinBasic(tstep, param, frac)
   swe    = zeros(Float64, nzones)
   q_sim  = 0.0
 
-  TinBasic(prec, tair, swe, q_sim, param, frac, tstep)
+  TinBasic(prec, tair, swe, q_sim, param, frac, tstep, time)
 
 end
 
@@ -183,5 +184,9 @@ function run_timestep(mdata::TinBasic)
     mdata.q_sim += mdata.frac[i]*(M + pliquid)
 
   end
+
+  mdata.time += Dates.Hour(mdata.tstep)
+
+  return nothing
 
 end

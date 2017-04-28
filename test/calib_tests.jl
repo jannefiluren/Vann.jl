@@ -24,9 +24,11 @@ frac = zeros(Float64, 1)
 
 tstep = 24.0
 
+time = DateTime(2000,1,1)
+
 # Select model
 
-st_hydro = Gr4j(tstep)
+st_hydro = Gr4j(tstep, time)
 
 # Run calibration
 
@@ -67,14 +69,16 @@ date, tair, prec, q_obs, frac = load_data(filename, "Q_ref.txt")
 
 tstep = 24.0
 
+time = date[1]
+
 # Compute potential evapotranspiration
 
 epot = epot_zero(date)
 
 # Select model
 
-st_snow = TinBasic(tstep, frac)
-st_hydro = Gr4j(tstep)
+st_snow = TinBasic(tstep, time, frac)
+st_hydro = Gr4j(tstep, time)
 
 # Run calibration
 

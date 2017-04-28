@@ -1,22 +1,31 @@
 
 import Vann
-using PyPlot
 
-# Load data
+filename = Pkg.dir("Vann", "data/airgr/test_data.txt")
 
-date, tair, prec, q_obs, frac = Vann.load_data("data/atnasjo");
+data = readdlm(filename, ',', header = true)
 
-# Parameters
+prec  = data[1][:,1]
+epot  = data[1][:,2]
+q_obs = data[1][:,3]
 
-param_snow  = [0.0, 3.69, 1.02];
-param_hydro = [100., 0.8, 0.15, 0.05, 0.01, 1., 2., 30., 2.5];
+prec = transpose(prec)
+epot = transpose(epot)
+
+frac = zeros(Float64, 1)
+
+param  = [257.238, 1.012, 88.235, 2.208]
+
+tstep = 24.0
+
+time = DateTime(2000,1,1)
 
 # Select model
 
-st_snow  = Vann.TinBasic(param_snow, frac);
-st_hydro = Vann.Hbv(param_hydro, frac);
+st_gr4j = Vann.Gr4j(tstep, time, param)
 
-q_sim = Vann.run_model(st_snow, st_hydro, date, tair, prec);
+# Run model
 
-plot(1:length(q_sim), q_sim, linewidth=2.0, 1:length(q_obs), q_obs, linewidth=1.0);
-title("Simulated (blue) and observed (green) runoff");
+q_sim, res_all = Vann.run_model(st_gr4j, prec, epot; return_all = true)
+
+Vann.plot_sim(res_all)
