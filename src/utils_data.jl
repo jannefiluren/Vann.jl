@@ -5,20 +5,20 @@ function load_data(folder, file_q_obs = "Q_obs.txt", file_tair = "Tair.txt",
 
   # Read air temperature data
 
-  tmp   = readdlm("$folder/$file_tair", '\t')
-  tair  = tmp[:, 5:end]
+  tmp   = CSV.read("$folder/$file_tair", delim = ";", header = false, dateformat="yyyy-mm-dd HH:MM", nullable = false)
+  tair  = Array(tmp[:, 2:end])
   tair  = transpose(tair)
 
   # Read precipitation data
 
-  tmp   = readdlm("$folder/$file_prec", '\t')
-  prec  = tmp[:, 5:end]
+  tmp   = CSV.read("$folder/$file_prec", delim = ";", header = false, dateformat="yyyy-mm-dd HH:MM", nullable = false)
+  prec  = Array(tmp[:, 2:end])
   prec  = transpose(prec)
 
   # Read runoff data
 
-  tmp   = readdlm("$folder/$file_q_obs", '\t')
-  q_obs = tmp[:, 5]
+  tmp   = CSV.read("$folder/$file_q_obs", delim = ";", header = false, dateformat="yyyy-mm-dd HH:MM", nullable = false)
+  q_obs = Array(tmp[:, 2])
 
   # Read elevation band data
 
@@ -27,7 +27,7 @@ function load_data(folder, file_q_obs = "Q_obs.txt", file_tair = "Tair.txt",
 
   # Get time data
 
-  date = [DateTime(tmp[i,1], tmp[i,2], tmp[i,3], tmp[i,4]) for i in 1:length(q_obs)]
+  date = Array(tmp[:, 1])
 
   # Return data
 

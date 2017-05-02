@@ -34,11 +34,11 @@ write.table(param, file = "Param.txt", sep = "\t", row.names = FALSE, col.names 
 write.table(data_obs$frac_elev_band, file = "Frac.txt", sep = "\t", row.names = FALSE, col.names = FALSE)
 
 
-write.table(data.frame(year, month, day, hour, round(Q_ref, digits = 3)), file = "Q_ref.txt", sep = "\t", row.names = FALSE, col.names = FALSE)
+write.table(data.frame( format(data_obs$time_vec, "%Y-%m-%d %H:%M") , round(Q_ref, digits = 3)), file = "Q_ref.txt", sep = ";", row.names = FALSE, col.names = FALSE, quote = FALSE)
 
-write.table(data.frame(year, month, day, hour, round(data_obs$Runoff, digits = 3)), file = "Q_obs.txt", sep = "\t", row.names = FALSE, col.names = FALSE)
+write.table(data.frame( format(data_obs$time_vec, "%Y-%m-%d %H:%M") , round(data_obs$Runoff, digits = 3)), file = "Q_obs.txt", sep = ";", row.names = FALSE, col.names = FALSE, quote = FALSE)
 
-write.table(data.frame(year, month, day, hour, round(data_obs$Tair, digits = 3)), file = "Tair.txt", sep = "\t", row.names = FALSE, col.names = FALSE)
+write.table(data.frame( format(data_obs$time_vec, "%Y-%m-%d %H:%M") , round(data_obs$Tair, digits = 3)), file = "Tair.txt", sep = ";", row.names = FALSE, col.names = FALSE, quote = FALSE)
 
-write.table(data.frame(year, month, day, hour, round(data_obs$Prec, digits = 3)), file = "Prec.txt", sep = "\t", row.names = FALSE, col.names = FALSE)
+write.table(data.frame( format(data_obs$time_vec, "%Y-%m-%d %H:%M") , round(data_obs$Prec, digits = 3)), file = "Prec.txt", sep = ";", row.names = FALSE, col.names = FALSE, quote = FALSE)
 

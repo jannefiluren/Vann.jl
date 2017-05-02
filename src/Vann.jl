@@ -4,6 +4,7 @@ using BlackBoxOptim
 using Distributions
 using DataAssim
 using PyPlot
+using CSV
 
 abstract Hydro
 abstract Snow
