@@ -29,7 +29,7 @@ Constructor for HBV with predefined state variables, parameters and inputs.
 The time step (tstep) is given as a fraction of one day. Thus, for hourly input
 data tstep should be set to 1/24.
 """
-function Hbv(tstep, time)
+function Hbv(tstep::Float64, time::DateTime)
 
   # Parameters: fc, lp, k0, k1, k2, beta, perc, ulz, maxbas
 
@@ -67,7 +67,7 @@ Constructor for HBV with predefined state variables and inputs. The parameter
 values are given as input. The time step (tstep) is given as a fraction of one
 day. Thus, for hourly input data tstep should be set to 1/24.
 """
-function Hbv(tstep, time, param)
+function Hbv(tstep::Float64, time::DateTime, param::Array{Float64,1})
 
   # Unit hydrograph ordinates
 

@@ -27,7 +27,7 @@ The time step (tstep) is given as a fraction of one day. Thus, for hourly input
 data tstep should be set to 1/24. The fraction of elevation bands should sum
 up to unity.
 """
-function TinBasic(tstep, time, frac)
+function TinBasic(tstep::Float64, time::DateTime, frac::Array{Float64,1})
 
   nzones = length(frac)
   prec   = zeros(Float64, nzones)
@@ -49,7 +49,7 @@ The time step (tstep) is given as a fraction of one day. Thus, for hourly input
 data tstep should be set to 1/24. The fraction of elevation bands should sum
 up to unity.
 """
-function TinBasic(tstep, time, param, frac)
+function TinBasic(tstep::Float64, time::DateTime, param::Array{Float64,1}, frac::Array{Float64,1})
 
   nzones = length(frac)
   prec   = zeros(Float64, nzones)

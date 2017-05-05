@@ -27,7 +27,7 @@ Constructor for GR4J with predefined state variables, parameters and inputs.
 The time step (tstep) is given as a fraction of one day. Thus, for hourly input
 data tstep should be set to 1/24.
 """
-function Gr4j(tstep, time)
+function Gr4j(tstep::Float64, time::DateTime)
 
   n_ord = ceil(Int64, 20.0 * 24.0 / tstep)
 
@@ -63,7 +63,7 @@ Constructor for GR4J with predefined state variables and inputs. The parameter
 values are given as input. The time step (tstep) is given as a fraction of one
 day. Thus, for hourly input data tstep should be set to 1/24.
 """
-function Gr4j(tstep, time, param)
+function Gr4j(tstep::Float64, time::DateTime, param::Array{Float64,1})
 
   n_ord = ceil(Int64, 20.0 * 24.0 / tstep)
 
