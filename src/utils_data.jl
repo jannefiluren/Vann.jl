@@ -5,20 +5,29 @@ function load_data(folder, file_q_obs = "Q_obs.txt", file_tair = "Tair.txt",
 
   # Read air temperature data
 
-  tmp   = CSV.read("$folder/$file_tair", delim = ";", header = false, dateformat="yyyy-mm-dd HH:MM", nullable = false)
+  str   = readline("$folder/$file_tair")
+  nsep  = length(matchall(r";", str))
+  tmp   = CSV.read("$folder/$file_tair", delim = ";", header = false,
+                   dateformat="yyyy-mm-dd HH:MM", nullable = false, types = vcat(DateTime, repmat([Float64], nsep)))
   tair  = Array(tmp[:, 2:end])
   tair  = transpose(tair)
 
   # Read precipitation data
 
-  tmp   = CSV.read("$folder/$file_prec", delim = ";", header = false, dateformat="yyyy-mm-dd HH:MM", nullable = false)
+  str   = readline("$folder/$file_tair")
+  nsep  = length(matchall(r";", str))
+  tmp   = CSV.read("$folder/$file_prec", delim = ";", header = false,
+                  dateformat="yyyy-mm-dd HH:MM", nullable = false, types = vcat(DateTime, repmat([Float64], nsep)))
   prec  = Array(tmp[:, 2:end])
   prec  = transpose(prec)
 
   # Read runoff data
 
-  tmp   = CSV.read("$folder/$file_q_obs", delim = ";", header = false, dateformat="yyyy-mm-dd HH:MM", nullable = false)
+  tmp   = CSV.read("$folder/$file_q_obs", delim = ";", header = false,
+                   dateformat="yyyy-mm-dd HH:MM", nullable = false, types = [DateTime, Float64])
   q_obs = Array(tmp[:, 2])
+
+  q_obs[q_obs .== -999.0] = NaN
 
   # Read elevation band data
 

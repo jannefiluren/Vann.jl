@@ -171,18 +171,28 @@ function kge(q_sim, q_obs)
 
     # ikeep = q_obs .!= -999.
 
-    ikeep = !isnan(q_obs)
+    if all(isnan, q_sim) || all(isnan, q_obs)
 
-    q_sim = q_sim[ikeep]
-    q_obs = q_obs[ikeep]
+        kge = NaN
 
-    r = cor(q_sim, q_obs)
+    else
 
-    beta = mean(q_sim) / mean(q_obs)
+        ikeep = !isnan(q_obs)
 
-    gamma = (std(q_sim) / mean(q_sim)) / (std(q_obs) / mean(q_obs))
+        q_sim = q_sim[ikeep]
+        q_obs = q_obs[ikeep]
 
-    kge = 1 - sqrt( (r-1)^2 + (beta-1)^2 + (gamma-1)^2 )
+        r = cor(q_sim, q_obs)
+
+        beta = mean(q_sim) / mean(q_obs)
+
+        gamma = (std(q_sim) / mean(q_sim)) / (std(q_obs) / mean(q_obs))
+
+        kge = 1 - sqrt( (r-1)^2 + (beta-1)^2 + (gamma-1)^2 )
+
+    end
+
+    return kge
 
 end
 
