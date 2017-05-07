@@ -16,8 +16,6 @@ function plot_sim{T<:Gr4j}(hydro_out::Array{T,1}; q_obs = [], file_name = [])
   plt[:title]("GR4J")
   plt[:ylabel]("Runoff")
   if ~isempty(q_obs)
-
-    
     nse_res = round(nse(q_sim, q_obs), 2)
     kge_res = round(kge(q_sim, q_obs), 2)
     plt[:plot](time, q_obs, linewidth = 1.2, color = "b", label = "Obs")
@@ -43,17 +41,18 @@ end
 
 function plot_sim{T<:Hbv}(hydro_out::Array{T,1}; q_obs = [], file_name = [])
 
-  time = [hydro_out[i].time for i in 1:length(hydro_out)]
-  sm   = [hydro_out[i].sm for i in 1:length(hydro_out)]
-  suz  = [hydro_out[i].suz for i in 1:length(hydro_out)]
-  slz  = [hydro_out[i].slz for i in 1:length(hydro_out)]
+  time  = [hydro_out[i].time for i in 1:length(hydro_out)]
+  sm    = [hydro_out[i].sm for i in 1:length(hydro_out)]
+  suz   = [hydro_out[i].suz for i in 1:length(hydro_out)]
+  slz   = [hydro_out[i].slz for i in 1:length(hydro_out)]
+  q_sim = [hydro_out[i].q_sim for i in 1:length(hydro_out)]
 
   fig = plt[:figure](figsize = (12,7))
 
   plt[:style][:use]("ggplot")
 
   ax = plt[:subplot](211)
-  plt[:plot](time, q_sim, linewidth = 1.2, color = "r")
+  plt[:plot](time, q_sim, linewidth = 1.2, color = "r", label = "Sim")
   plt[:title]("HBV")
   plt[:ylabel]("Runoff")
   if ~isempty(q_obs)
