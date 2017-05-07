@@ -10,7 +10,7 @@ Wrapper function required for calibrating hydrological routing model.
 
 """
 
-function calib_wrapper(param, st_hydro, prec, epot, q_obs, q_sim, warmup)
+function calib_wrapper(param, st_hydro, prec, epot, q_obs, q_sim, states_sim, warmup, force_states)
 
     # Assign parameter values
 
@@ -32,9 +32,45 @@ function calib_wrapper(param, st_hydro, prec, epot, q_obs, q_sim, warmup)
 
         q_sim[itime] = st_hydro.q_sim
 
+        if ~isempty(states_sim)
+
+            states_hydro = get_states(st_hydro)
+
+            states_sim[:, itime] = vcat(states_hydro)
+
+        end
+
     end
 
-    return(1.0 - kge(q_sim, q_obs))
+    # Compute penatly
+
+    if force_states == true && ~isempty(states_sim)
+
+        penalty = zeros(size(states_sim, 1))
+
+        for istate = 1:size(states_sim, 1)
+
+            slope = cov(states_sim[istate, warmup:end], warmup:ntimes) / var(warmup:ntimes)
+
+            penalty[istate] = 2 ./ (1  + exp(-(10 * slope).^2)) - 1
+
+        end
+
+        penalty = maximum(penalty)
+
+        # penalty = mean(abs(slope))
+
+    else
+
+        penalty = 0.0
+
+    end
+
+    # Compute performance measure
+
+    perf_measure = 1.0 - nse(q_sim[warmup:end], q_obs[warmup:end]) + penalty
+
+    return perf_measure
 
 end
 
@@ -128,7 +164,7 @@ Run calibration of hydrological routing model, for example HBV.
 """
 
 function run_model_calib(st_hydro::Hydro, prec, epot, q_obs;
-                         verbose = :silent, warmup = 3*365)
+                         verbose = :silent, warmup = 3*365, force_states = false)
 
     # Get parameter range
 
@@ -136,13 +172,19 @@ function run_model_calib(st_hydro::Hydro, prec, epot, q_obs;
 
     # Allocate output array
 
-    ntimes  = size(prec, 2)
-    
-    q_sim = zeros(Float64, ntimes)
+    states_hydro = Vann.get_states(st_hydro)
+
+    ntimes = size(prec, 2)
+    nstates = length(states_hydro)
+
+    q_sim = zeros(ntimes)
+
+    states_sim = zeros(nstates, ntimes)
 
     # Run calibration
 
-    calib_wrapper_tmp(param) = calib_wrapper(param, st_hydro, prec, epot, q_obs, q_sim, warmup)
+    calib_wrapper_tmp(param) = calib_wrapper(param, st_hydro, prec, epot, q_obs, 
+                                             q_sim, states_sim, warmup, force_states)
 
     res = bboptimize(calib_wrapper_tmp; SearchRange = param_range, TraceMode = verbose)
 
