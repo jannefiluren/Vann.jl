@@ -5,6 +5,7 @@ using Distributions
 using DataAssim
 using PyPlot
 using CSV
+using NLopt
 
 abstract Hydro
 abstract Snow
@@ -14,10 +15,10 @@ export TinBasic, TinStandard
 
 export run_timestep, run_timestep
 export load_data, crop_data
-export get_param_range, init_states
+export init_states, get_states
 export run_model_calib, calib_wrapper
 export run_model
-export assign_param
+export get_param_range, assign_param
 export get_input
 export plot_sim
 export epot_zero, epot_monthly

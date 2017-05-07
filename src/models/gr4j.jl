@@ -123,6 +123,19 @@ end
 
 
 """
+    get_states(mdata::Gr4j)
+
+Get state variables for computing penelty during calibration.
+
+"""
+function get_states(mdata::Gr4j)
+
+  return []
+
+end
+
+
+"""
     assign_param(mdata::Gr4j, param::Array{Float64,1})
 Assign parameter values to the Gr4j type.
 """

@@ -1,5 +1,7 @@
 
 
+
+
 """
 
     calib_wrapper(param, st_hydro, prec, epot, q_obs, q_sim)
@@ -77,7 +79,7 @@ function calib_wrapper(param, st_snow, st_hydro, date, tair, prec, epot, q_obs, 
 
     end
 
-    return(1.0 - kge(q_sim, q_obs))
+    return(1.0 - nse(q_sim, q_obs))
 
 end
 
@@ -138,7 +140,7 @@ function run_model_calib(st_snow::Snow, st_hydro::Hydro, date, tair, prec, epot,
 
     ntimes = size(prec, 2)
 
-    q_sim = zeros(Float64, ntimes)
+    q_sim = zeros(ntimes)
 
     # Run calibration
 
@@ -209,9 +211,9 @@ Compute Nash-Sutcliffe efficiency
 
 function nse(q_sim, q_obs)
 
-  # ikeep = q_obs .!= -999.
+    # ikeep = q_obs .!= -999.
 
-  ikeep = !isnan(q_obs)
+    ikeep = !isnan(q_obs)
 
     q_sim = q_sim[ikeep]
     q_obs = q_obs[ikeep]
@@ -225,252 +227,212 @@ end
 
 
 
+#=
+### Snow and hydrological model
 
+# Run model and compute performance measure
 
+function calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tair, prec, epot, q_obs)
 
+  # Assign parameter values
 
+  assign_param(st_snow, param[1:length(st_snow.param)]);
+  assign_param(st_hydro, param[length(st_snow.param)+1:end]);
 
+  # Initilize model states
 
+  init_states(st_snow);
+  init_states(st_hydro);
 
+  # Run model
 
+  ntimes = size(prec, 2);
 
+  q_sim = zeros(Float64, ntimes);
 
+  for itime in 1:ntimes
 
-# ### Snow and hydrological model
+    get_input(st_snow, prec, tair, date, itime);
 
-# # Run model and compute performance measure
+    run_timestep(st_snow);
 
-# function calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tair, prec, epot, q_obs)
+    get_input(st_snow, st_hydro, epot, itime);
 
-#   # Assign parameter values
+    run_timestep(st_hydro);
 
-#   assign_param(st_snow, param[1:length(st_snow.param)]);
-#   assign_param(st_hydro, param[length(st_snow.param)+1:end]);
+    q_sim[itime] = st_hydro.q_sim
 
-#   # Initilize model states
+  end
 
-#   init_states(st_snow);
-#   init_states(st_hydro);
+  return(kge(q_sim, q_obs));
 
-#   # Run model
+end
 
-#   ntimes = size(prec, 2);
 
-#   q_sim = zeros(Float64, ntimes);
+# Run calibration
 
-#   for itime in 1:ntimes
+function run_model_calib(st_snow::Snow, st_hydro::Hydro, date, tair, prec, epot, q_obs)
 
-#     get_input(st_snow, prec, tair, date, itime);
+  # Get parameter range
 
-#     run_timestep(st_snow);
+  param_range_snow  = get_param_range(st_snow);
+  param_range_hydro = get_param_range(st_hydro);
 
-#     get_input(st_snow, st_hydro, epot, itime);
+  param_range = vcat(param_range_snow, param_range_hydro);
 
-#     q_sim[itime] = run_timestep(st_hydro);
+  # Lower and upper bounds for parameters
 
-#   end
+  param_lower = [param_range[i][1] for i in eachindex(param_range)];
+  param_upper = [param_range[i][2] for i in eachindex(param_range)];
 
-#   return(kge(q_sim, q_obs));
+  # Starting point
 
-# end
+  param_start = (param_lower + param_upper) / 2;
 
+  # Wrapper function
 
-# # Run calibration
+  calib_wrapper_tmp(param::Vector, grad::Vector) = calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tair, prec, epot, q_obs);
 
-# function run_model_calib(st_snow::Snow, st_hydro::Hydro, date, tair, prec, epot, q_obs)
+  # Perform global optimization
 
-#   # Get parameter range
+  opt_global = Opt(:GN_ESCH, length(param_start));
 
-#   param_range_snow  = get_param_range(st_snow);
-#   param_range_hydro = get_param_range(st_hydro);
+  max_objective!(opt_global, calib_wrapper_tmp);
 
-#   param_range = vcat(param_range_snow, param_range_hydro);
+  maxeval!(opt_global, 5000);
 
-#   # Lower and upper bounds for parameters
+  lower_bounds!(opt_global, param_lower);
+  upper_bounds!(opt_global, param_upper);
 
-#   param_lower = [param_range[i][1] for i in eachindex(param_range)];
-#   param_upper = [param_range[i][2] for i in eachindex(param_range)];
+  (min_func, best_global, ret_nlopt) = optimize(opt_global, param_start);
 
-#   # Starting point
+  # Check that optimal value is inside bounds
 
-#   param_start = (param_lower + param_upper) / 2;
+  for iparam = 1:length(best_global)
 
-#   # Wrapper function
+    if best_global[iparam] < param_lower[iparam] + 0.2*(param_upper[iparam] - param_lower[iparam])
+      best_global[iparam] = param_lower[iparam] + 0.2*(param_upper[iparam] - param_lower[iparam]);
+    end
 
-#   calib_wrapper_tmp(param::Vector, grad::Vector) = calib_wrapper(param::Vector, grad::Vector, st_snow, st_hydro, date, tair, prec, epot, q_obs);
+    if best_global[iparam] > param_upper[iparam] - 0.2*(param_upper[iparam] - param_lower[iparam]);
+      best_global[iparam] = param_upper[iparam] - 0.2*(param_upper[iparam] - param_lower[iparam]);
+    end
 
-#   # Perform global optimization
+  end
 
-#   opt_global = Opt(:GN_ESCH, length(param_start));
+  # Perform local optimization
 
-#   max_objective!(opt_global, calib_wrapper_tmp);
+  opt_local = Opt(:LN_NELDERMEAD, length(param_start));
 
-#   maxeval!(opt_global, 5000);
+  max_objective!(opt_local, calib_wrapper_tmp);
 
-#   lower_bounds!(opt_global, param_lower);
-#   upper_bounds!(opt_global, param_upper);
+  lower_bounds!(opt_local, param_lower);
+  upper_bounds!(opt_local, param_upper);
 
-#   (min_func, best_global, ret_nlopt) = optimize(opt_global, param_start);
+  (min_func, best_local, ret_nlopt) = optimize(opt_local, best_global);
 
-#   # Check that optimal value is inside bounds
+  # Return best parameter values
 
-#   for iparam = 1:length(best_global)
+  return(best_local)
 
-#     if best_global[iparam] < param_lower[iparam] + 0.2*(param_upper[iparam] - param_lower[iparam])
-#       best_global[iparam] = param_lower[iparam] + 0.2*(param_upper[iparam] - param_lower[iparam]);
-#     end
+end
 
-#     if best_global[iparam] > param_upper[iparam] - 0.2*(param_upper[iparam] - param_lower[iparam]);
-#       best_global[iparam] = param_upper[iparam] - 0.2*(param_upper[iparam] - param_lower[iparam]);
-#     end
 
-#   end
+### Hydrological model
 
-#   # Perform local optimization
+# Run model and compute performance measure
 
-#   opt_local = Opt(:LN_NELDERMEAD, length(param_start));
+function calib_wrapper(param::Vector, grad::Vector, st_hydro, prec, epot, q_obs)
 
-#   max_objective!(opt_local, calib_wrapper_tmp);
+  # Assign parameter values
 
-#   lower_bounds!(opt_local, param_lower);
-#   upper_bounds!(opt_local, param_upper);
+  assign_param(st_hydro, param);
 
-#   (min_func, best_local, ret_nlopt) = optimize(opt_local, best_global);
+  # Initilize model states
 
-#   # Return best parameter values
+  init_states(st_hydro);
 
-#   return(best_local)
+  # Run model
 
-# end
+  ntimes = size(prec, 2);
 
+  q_sim = zeros(Float64, ntimes);
 
-# ### Hydrological model
+  for itime in 1:ntimes
 
-# # Run model and compute performance measure
+    get_input(st_hydro, prec, epot, itime);
 
-# function calib_wrapper(param::Vector, grad::Vector, st_hydro, prec, epot, q_obs)
+    q_sim[itime] = run_timestep(st_hydro);
 
-#   # Assign parameter values
+  end
 
-#   assign_param(st_hydro, param);
+  return(kge(q_sim, q_obs));
 
-#   # Initilize model states
+end
 
-#   init_states(st_hydro);
+# Run calibration
 
-#   # Run model
+function run_model_calib(st_hydro::Hydro, prec, epot, q_obs)
 
-#   ntimes = size(prec, 2);
+  # Get parameter range
 
-#   q_sim = zeros(Float64, ntimes);
+  param_range = get_param_range(st_hydro);
 
-#   for itime in 1:ntimes
+  # Lower and upper bounds for parameters
 
-#     get_input(st_hydro, prec, epot, itime);
+  param_lower = [param_range[i][1] for i in eachindex(param_range)];
+  param_upper = [param_range[i][2] for i in eachindex(param_range)];
 
-#     q_sim[itime] = run_timestep(st_hydro);
+  # Starting point
 
-#   end
+  param_start = (param_lower + param_upper) / 2;
 
-#   return(kge(q_sim, q_obs));
+  # Wrapper function
 
-# end
+  calib_wrapper_tmp(param::Vector, grad::Vector) = calib_wrapper(param::Vector, grad::Vector, st_hydro, prec, epot, q_obs);
 
-# # Run calibration
+  # Perform global optimization
 
-# function run_model_calib(st_hydro::Hydro, prec, epot, q_obs)
+  opt_global = Opt(:GN_ESCH, length(param_start));
 
-#   # Get parameter range
+  max_objective!(opt_global, calib_wrapper_tmp);
 
-#   param_range = get_param_range(st_hydro);
+  maxeval!(opt_global, 5000);
 
-#   # Lower and upper bounds for parameters
+  lower_bounds!(opt_global, param_lower);
+  upper_bounds!(opt_global, param_upper);
 
-#   param_lower = [param_range[i][1] for i in eachindex(param_range)];
-#   param_upper = [param_range[i][2] for i in eachindex(param_range)];
+  (min_func, best_global, ret_nlopt) = optimize(opt_global, param_start);
 
-#   # Starting point
+  # Check that optimal value is inside bounds
 
-#   param_start = (param_lower + param_upper) / 2;
+  for iparam = 1:length(best_global)
 
-#   # Wrapper function
+    if best_global[iparam] < param_lower[iparam] + 0.2*(param_upper[iparam] - param_lower[iparam])
+      best_global[iparam] = param_lower[iparam] + 0.2*(param_upper[iparam] - param_lower[iparam]);
+    end
 
-#   calib_wrapper_tmp(param::Vector, grad::Vector) = calib_wrapper(param::Vector, grad::Vector, st_hydro, prec, epot, q_obs);
+    if best_global[iparam] > param_upper[iparam] - 0.2*(param_upper[iparam] - param_lower[iparam]);
+      best_global[iparam] = param_upper[iparam] - 0.2*(param_upper[iparam] - param_lower[iparam]);
+    end
 
-#   # Perform global optimization
+  end
 
-#   opt_global = Opt(:GN_ESCH, length(param_start));
+  # Perform local optimization
 
-#   max_objective!(opt_global, calib_wrapper_tmp);
+  opt_local = Opt(:LN_NELDERMEAD, length(param_start));
 
-#   maxeval!(opt_global, 5000);
+  max_objective!(opt_local, calib_wrapper_tmp);
 
-#   lower_bounds!(opt_global, param_lower);
-#   upper_bounds!(opt_global, param_upper);
+  lower_bounds!(opt_local, param_lower);
+  upper_bounds!(opt_local, param_upper);
 
-#   (min_func, best_global, ret_nlopt) = optimize(opt_global, param_start);
+  (min_func, best_local, ret_nlopt) = optimize(opt_local, best_global);
 
-#   # Check that optimal value is inside bounds
+  # Return best parameter values
 
-#   for iparam = 1:length(best_global)
+  return(best_local)
 
-#     if best_global[iparam] < param_lower[iparam] + 0.2*(param_upper[iparam] - param_lower[iparam])
-#       best_global[iparam] = param_lower[iparam] + 0.2*(param_upper[iparam] - param_lower[iparam]);
-#     end
+end
 
-#     if best_global[iparam] > param_upper[iparam] - 0.2*(param_upper[iparam] - param_lower[iparam]);
-#       best_global[iparam] = param_upper[iparam] - 0.2*(param_upper[iparam] - param_lower[iparam]);
-#     end
-
-#   end
-
-#   # Perform local optimization
-
-#   opt_local = Opt(:LN_NELDERMEAD, length(param_start));
-
-#   max_objective!(opt_local, calib_wrapper_tmp);
-
-#   lower_bounds!(opt_local, param_lower);
-#   upper_bounds!(opt_local, param_upper);
-
-#   (min_func, best_local, ret_nlopt) = optimize(opt_local, best_global);
-
-#   # Return best parameter values
-
-#   return(best_local)
-
-# end
-
-
-# # Modified Kling-Gupta efficiency
-
-# function kge(q_sim, q_obs)
-
-#   ikeep = q_obs .!= -999.;
-
-#   q_sim = q_sim[ikeep];
-#   q_obs = q_obs[ikeep];
-
-#   r = cor(q_sim, q_obs);
-
-#   beta = mean(q_sim) / mean(q_obs);
-
-#   gamma = (std(q_sim) / mean(q_sim)) / (std(q_obs) / mean(q_obs));
-
-#   kge = 1 - sqrt( (r-1)^2 + (beta-1)^2 + (gamma-1)^2 );
-
-# end
-
-
-# # Nash-Sutcliffe efficiency
-
-# function nse(q_sim, q_obs)
-
-#   ikeep = q_obs .!= -999.;
-
-#   q_sim = q_sim[ikeep];
-#   q_obs = q_obs[ikeep];
-
-#   ns = 1 - sum((q_sim - q_obs).^2) / sum((q_obs - mean(q_obs)).^2);
-
-# end
+=#

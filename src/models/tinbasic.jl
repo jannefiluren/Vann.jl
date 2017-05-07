@@ -89,6 +89,19 @@ end
 
 
 """
+    get_states(mdata::TinBasic)
+
+Get state variables for computing penelty during calibration.
+
+"""
+function get_states(mdata::TinBasic)
+
+  return [mean(mdata.swe)]
+
+end
+
+
+"""
     assign_param(mdata::TinBasic, param::Array{Float64,1})
 
 Assign parameter values to the TinBasic type.
