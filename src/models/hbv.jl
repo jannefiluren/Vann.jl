@@ -31,29 +31,21 @@ data tstep should be set to 1/24.
 """
 function Hbv(tstep::Float64, time::DateTime)
 
-  # Parameters: fc, lp, k0, k1, k2, beta, perc, ulz, maxbas
+  sm      = 0.0
+  suz     = 0.0
+  slz     = 0.0
+  st_uh   = zeros(Float64, 20)
+
+  epot   = 0.0
+  prec   = 0.0
+
+  q_sim = 0.0
+
+  # fc, lp, k0, k1, k2, beta, perc, ulz, maxbas
 
   param = [100., 0.8, 0.05, 0.05, 0.01, 1., 2., 30., 2.5]
 
-  # Unit hydrograph ordinates
-
-  hbv_ord = compute_hbv_ord(param[9], tstep)
-
-  # States
-
-  sm      = 0.
-  suz     = 0.
-  slz     = 0.
-  st_uh   = zeros(Float64, length(hbv_ord))
-
-  # Inputs
-
-  epot = 0.0
-  prec = 0.0
-
-  # Outputs
-
-  q_sim = 0.0
+  hbv_ord = compute_hbv_ord(param[9])
 
   Hbv(sm, suz, slz, st_uh, hbv_ord, epot, prec, q_sim, param, tstep, time)
 
@@ -69,25 +61,17 @@ day. Thus, for hourly input data tstep should be set to 1/24.
 """
 function Hbv(tstep::Float64, time::DateTime, param::Array{Float64,1})
 
-  # Unit hydrograph ordinates
+  sm      = 0.0
+  suz     = 0.0
+  slz     = 0.0
+  st_uh   = zeros(Float64, 20)
 
-  hbv_ord = compute_hbv_ord(param[9], tstep)
-
-  # States
-
-  sm      = 0.
-  suz     = 0.
-  slz     = 0.
-  st_uh   = zeros(Float64, length(hbv_ord))
-
-  # Inputs
-
-  epot = 0.0
-  prec = 0.0
-
-  # Outputs
+  epot   = 0.0
+  prec   = 0.0
 
   q_sim = 0.0
+
+  hbv_ord = compute_hbv_ord(param[9])
 
   Hbv(sm, suz, slz, st_uh, hbv_ord, epot, prec, q_sim, param, tstep, time)
 
@@ -99,8 +83,6 @@ end
 
 Initilize the state variables of the model.
 """
-# Initilize state variables
-
 function init_states(mdata::Hbv)
 
   mdata.sm      = 0.0
@@ -135,6 +117,19 @@ end
 
 
 """
+    get_states(mdata::Hbv)
+
+Get state variables for computing penelty during calibration.
+
+"""
+function get_states(mdata::Hbv)
+
+  return [mdata.suz; mdata.slz]
+
+end
+
+
+"""
     assign_param(mdata::Hbv, param::Array{Float64,1})
 
 Assign parameter values to the Hbv type.
@@ -145,10 +140,12 @@ function assign_param(mdata::Hbv, param::Array{Float64,1})
     mdata.param[i] = param[i]
   end
 
-  mdata.hbv_ord = compute_hbv_ord(param[9], mdata.tstep)
-  mdata.st_uh   = zeros(Float64, length(mdata.hbv_ord))
+  mdata.hbv_ord = compute_hbv_ord(param[9])
 
 end
+
+
+
 
 
 """
@@ -208,8 +205,6 @@ function enkf_hydro(mdata::Array{Hbv,1}, obs_ens, q_sim)
 end
 
 
-
-
 """
     run_timestep(mdata::Hbv)
 
@@ -233,7 +228,7 @@ function run_timestep(mdata::Hbv)
   k1     = mdata.param[4]
   k2     = mdata.param[5]
   beta   = mdata.param[6]
-  perc   = mdata.param[7] * mdata.tstep
+  perc   = mdata.param[7]
   ulz    = mdata.param[8]
   maxbas = mdata.param[9]
 
@@ -339,12 +334,12 @@ function run_timestep(mdata::Hbv)
 
   q_tot = st_uh[1]
 
-  # Update struct
+  # Assign states
 
-  mdata.time  += Dates.Hour(tstep)
-  mdata.sm    = sm
-  mdata.suz   = suz
-  mdata.slz   = slz
+  mdata.time  += Dates.Hour(mdata.tstep)
+  mdata.sm = sm
+  mdata.suz = suz
+  mdata.slz = slz
   mdata.st_uh = st_uh
   mdata.q_sim = q_tot
 
@@ -352,15 +347,14 @@ function run_timestep(mdata::Hbv)
 
 end
 
+
 # Function for computing ordinates of unit hydrograph
 
-function compute_hbv_ord(maxbas, tstep)
-
-  maxbas = maxbas / tstep
+function compute_hbv_ord(maxbas)
 
   triang = Distributions.TriangularDist(0, maxbas)
 
-  triang_cdf = Distributions.cdf(triang, 0:ceil(Int64, maxbas + 2))
+  triang_cdf = Distributions.cdf(triang, 0:20)
 
   hbv_ord = diff(triang_cdf)
 
