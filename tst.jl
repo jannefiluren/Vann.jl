@@ -1,31 +1,24 @@
 
 import Vann
 
-filename = Pkg.dir("Vann", "data/airgr/test_data.txt")
+filename = Pkg.dir("Vann", "data/atnasjo")
 
-data = readdlm(filename, ',', header = true)
-
-prec  = data[1][:,1]
-epot  = data[1][:,2]
-q_obs = data[1][:,3]
-
-prec = transpose(prec)
-epot = transpose(epot)
-
-frac = zeros(Float64, 1)
-
-param  = [257.238, 1.012, 88.235, 2.208]
+date, tair, prec, q_obs, frac = Vann.load_data(filename, "Q_ref.txt")
 
 tstep = 24.0
 
-time = DateTime(2000,1,1)
+time = date[1]
+
+# Compute potential evapotranspiration
+
+epot = Vann.epot_monthly(date)
 
 # Select model
 
-st_gr4j = Vann.Gr4j(tstep, time, param)
+st_snow  = Vann.TinBasic(tstep, time, frac)
+st_hydro = Vann.Hbv(tstep, time)
 
-# Run model
+q_sim, res_snow, res_hydro = Vann.run_model(st_snow, st_hydro, date, tair, prec, epot; return_all = true)
 
-q_sim, res_all = Vann.run_model(st_gr4j, prec, epot; return_all = true)
-
-Vann.plot_sim(res_all)
+Vann.plot_sim(res_snow)
+Vann.plot_sim(res_hydro)
