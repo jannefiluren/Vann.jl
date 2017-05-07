@@ -12,7 +12,7 @@ path_save   = "C:/Work/Studies/vann/"
 
 epot_choice = epot_monthly
 snow_choice = TinBasic
-hydro_choice = Gr4j
+hydro_choice = Hbv
 
 tstep = 24.0
 
@@ -60,6 +60,24 @@ for dir_cur in dir_all
   # Compute potential evapotranspiration
 
   epot = eval(Expr(:call, epot_choice, date))
+
+  # Precipitation correction step
+
+  if ~all(isnan(q_obs))
+
+    ikeep = ~isnan(q_obs)
+
+    prec_tmp = mean(prec,1)
+    
+    prec_sum = sum(prec_tmp[ikeep])
+    q_sum = sum(q_obs[ikeep])
+    epot_sum = sum(epot)
+
+    pcorr = (q_sum + 0.5*epot_sum) / prec_sum
+
+    prec = pcorr * prec
+
+  end
 
   # Initilize model
 
@@ -109,7 +127,7 @@ for dir_cur in dir_all
 
   # Run for validation period
 
-  # Load data
+  # Reload data
 
   date, tair, prec, q_obs, frac = load_data("$path_inputs/$dir_cur")
 
@@ -120,6 +138,12 @@ for dir_cur in dir_all
   # Compute potential evapotranspiration
 
   epot = eval(Expr(:call, epot_choice, date))
+
+  # Precipitation correction step
+
+  if isdefined(:pcorr)
+    prec = pcorr * prec
+  end
 
   # Reinitilize model
 
