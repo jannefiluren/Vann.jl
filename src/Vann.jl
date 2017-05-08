@@ -5,7 +5,6 @@ using Distributions
 using DataAssim
 using PyPlot
 using CSV
-using NLopt
 
 abstract Hydro
 abstract Snow
