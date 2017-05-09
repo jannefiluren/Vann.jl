@@ -60,7 +60,7 @@ function plot_sim{T<:Hbv}(hydro_out::Array{T,1}; q_obs = [], file_name = [])
     kge_res = round(kge(q_sim, q_obs), 2)
     plt[:plot](time, q_obs, linewidth = 1.2, color = "b", label = "Obs")
     plt[:legend]()
-    plt[:title]("GR4J | KGE = $(kge_res) | NSE = $(nse_res)")
+    plt[:title]("HBV | KGE = $(kge_res) | NSE = $(nse_res)")
   end  
 
   plt[:subplot](212, sharex = ax)
