@@ -92,7 +92,7 @@ end
 
 # Model wrapper for snow model
 
-function run_model(mdata_snow, date, tair, prec)
+function run_model(mdata_snow, date, tair, prec; return_all = false)
 
   # Number of time steps
 

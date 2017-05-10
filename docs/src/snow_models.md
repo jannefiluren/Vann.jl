@@ -1,58 +1,71 @@
 # Snow models
 
-The package includes different snow models.
+The following snow models are currently included in the package.
 
+* TinBasic
 
-## TinBasic
+*Simple temperature-index snow melt model with constant degree-day factor.*
 
-A basic implementation of a temperature index snow model.
+* TinStandard
 
-```@docs
-TinBasic
+*Magnusson, J., D. Gustafsson, F. Husler, and T. Jonas (2014), Assimilation of point SWE data into a distributed snow cover model comparing two contrasting methods, Water Resour. Res., 50, doi:10.1002/2014WR015302.*
+
+## Model initialization
+
+The following examples shows how to initialize the TinBasic model.
+
+```@example
+# Load packages
+
+using Vann
+
+# Model time step
+
+tstep = 24.0
+
+# Initial date of the simulation period
+
+time = DateTime(2000, 1, 1)
+
+# Fraction covered by the different elevation bands
+
+frac = [0.5; 0.5]
+
+# Initilize the model with predefined parameters
+
+model_var = TinBasic(tstep, time, frac)
+
+# Initilize the model with custom parameters
+
+param = [0.5, 4.0, 1.2]
+
+model_var = TinBasic(tstep, time, param, frac)
 ```
 
-The following constructors are available for generating the types:
+## Run the model
 
-```@docs
-TinBasic(tstep, frac)
-TinBasic(tstep, param, frac)
-```
+The following example shows how to run the TinBasic model.
 
-The following functions are mainly used during the calibration of the model:
+```@example
+# Load packages
 
-```@docs
-init_states(mdata::TinBasic)
-get_param_range(mdata::TinBasic)
-assign_param(mdata::TinBasic, param::Array{Float64,1})
-```
+using Vann
 
-## TinStandard
+# Read example input data
 
-A an enhanced implementation of a temperature index snow model including a
-liquid water content.
+filepath = joinpath(Pkg.dir("Vann"), "data", "atnasjo")
 
-```docs
-TinStandard
-```
+date, tair, prec, q_obs, frac = load_data(filepath, "Q_ref.txt")
 
-The following constructors are available for generating the types:
+tstep = 24.0
 
-```docs
-TinStandard(tstep, frac)
-TinStandard(tstep, param, frac)
-```
+time = date[1]
 
-The following functions are mainly used during the calibration of the model:
+# Select model
 
-```docs
-init_states(mdata::TinStandard)
-get_param_range(mdata::TinStandard)
-assign_param(mdata::TinStandard, param::Array{Float64,1})
-```
+model_var = TinBasic(tstep, time, frac)
 
-The models are written in state-space form. Calling the function below runs the
-model for one time step.
+# Run model - output is snowmelt runoff
 
-```docs
-run_timestep(mdata::TinStandard)
+q_sim = run_model(model_var, date, tair, prec)
 ```

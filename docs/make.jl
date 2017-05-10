@@ -8,6 +8,7 @@ makedocs(
       "Home" => "index.md",
       "Hydrological models" => "hyd_models.md",
       "Snow models" => "snow_models.md",
+      "Model calibration" => "calibration.md",
       "Data assimilation" => "data_assim.md"
   ]
 )

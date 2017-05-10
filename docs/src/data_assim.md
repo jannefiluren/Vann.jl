@@ -20,7 +20,7 @@ hydro_choice = Gr4j
 
 # Filter choices
 
-filter_choice = particle_filter
+filter_choice = enkf_filter
 
 nens = 500
 
@@ -58,5 +58,4 @@ fig = figure(figsize = (12,7))
 plot(date, q_obs, linewidth = 1.2, color = "k", label = "Observed", zorder = 1)
 fill_between(date, q_res[:, 3], q_res[:, 2], facecolor = "r", edgecolor = "r", label = "Simulated", alpha = 0.55, zorder = 2)
 legend()
-nothing # hide
 ```
