@@ -10,7 +10,7 @@ using PyPlot
 
 # Settings
 
-file_exper  = "C:/Work/Studies/vann/filter_experiments.xlsx"
+file_exper  = "C:/Work/Studies/vann/experiments.xlsx"
 path_inputs = "C:/Work/Studies/vann/data/norway"
 path_save   = "C:/Work/Studies/vann/filter_res"
 
