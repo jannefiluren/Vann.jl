@@ -32,7 +32,7 @@ st_hydro = Gr4j(tstep, time)
 
 # Run calibration
 
-param_opt = run_model_calib(st_hydro, prec, epot, q_obs; warmup = 1, force_states = true)
+param_opt = run_model_calib(st_hydro, prec, epot, q_obs; warmup = 1, verbose = :verbose)
 
 # Parameter values
 
@@ -82,7 +82,7 @@ st_hydro = Gr4j(tstep, time)
 
 # Run calibration
 
-param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs; warmup = 1)
+param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs; warmup = 1, verbose = :verbose)
 
 param_opt = vcat(param_snow, param_hydro)
 
