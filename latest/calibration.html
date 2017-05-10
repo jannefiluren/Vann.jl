@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Model calibration · Vann.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Ubuntu+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link href="assets/highlightjs/default.css" rel="stylesheet" type="text/css"/><link href="assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>Vann.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" action="search.html"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="index.html">Home</a></li><li><a class="toctext" href="hyd_models.html">Hydrological models</a></li><li><a class="toctext" href="snow_models.html">Snow models</a></li><li class="current"><a class="toctext" href="calibration.html">Model calibration</a><ul class="internal"></ul></li><li><a class="toctext" href="data_assim.html">Data assimilation</a></li></ul></nav><article id="docs"><header><nav><ul><li><a href="calibration.html">Model calibration</a></li></ul><a class="edit-page" href="https://github.com/jmgnve/Vann.jl/tree/3d8d0c6ad7800a35ec978bfbdf17fd1a1aff718e/docs/src/calibration.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/></header><h1><a class="nav-anchor" id="Model-calibration-1" href="#Model-calibration-1">Model calibration</a></h1><p>The following example illustrates how to calibrate a complete hydrological model, including the snow model and runoff generating part.</p><div><pre><code class="language-julia"># Load packages
+
+using Vann
+
+# Read example input data
+
+filepath = joinpath(Pkg.dir(&quot;Vann&quot;), &quot;data&quot;, &quot;atnasjo&quot;)
+
+date, tair, prec, q_obs, frac = load_data(filepath, &quot;Q_ref.txt&quot;)
+
+# Compute potential evapotranspiration
+
+epot = epot_zero(date)
+
+# Select model
+
+tstep = 24.0
+
+st_snow = TinBasic(tstep, date[1], frac)
+st_hydro = Gr4j(tstep, date[1])
+
+# Run calibration
+
+param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs; warmup = 1)</code></pre><pre><code class="language-none">([0.232599,3.75553,1.00764],[70.5673,1.0199,208.29,1.24542])</code></pre></div><footer><hr/><a class="previous" href="snow_models.html"><span class="direction">Previous</span><span class="title">Snow models</span></a><a class="next" href="data_assim.html"><span class="direction">Next</span><span class="title">Data assimilation</span></a></footer></article></body></html>
