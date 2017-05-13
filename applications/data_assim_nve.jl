@@ -16,84 +16,83 @@ path_save   = "C:/Work/Studies/vann/filter_res"
 
 df_exper = readxlsheet(DataFrame, file_exper, "Filter")
 
-date_start = DateTime(2000,09,01)
-date_stop  = DateTime(2008,12,31)
-
-
 # Run one experiment
 
-function run_single_experiment(path_inputs, path_save, date_start, date_stop, df_exper, i_exper)
-
-  # Get settings
-
-  epot_choice   = df_exper[:Epot][i_exper]
-  snow_choice   = df_exper[:Snow][i_exper]
-  hydro_choice  = df_exper[:Hydro][i_exper]
-  filter_choice = df_exper[:Filter][i_exper]
-  nens          = df_exper[:Nens][i_exper]
-
-  nens = convert(Int64, round(nens))
-
-  epot_choice   = parse(epot_choice)
-  snow_choice   = parse(snow_choice)
-  hydro_choice  = parse(hydro_choice)
-  filter_choice = parse(filter_choice)
+function run_single_experiment(path_inputs, path_save, df_exper, i_exper)
 
   # Folder for saving results
 
-  name_experiment = "experiment_" * string(i_exper)
-
-  path_save = joinpath(path_save, name_experiment)
+  path_save = joinpath(path_save, "experiment_" * string(i_exper))
 
   mkpath(path_save * "/tables")
   mkpath(path_save * "/figures")
-  
+
+  # Get settings
+
+  opt = Dict()
+
+  opt["epot_choice"]   = parse(df_exper[:epot_choice][i_exper])
+  opt["snow_choice"]   = parse(df_exper[:snow_choice][i_exper])
+  opt["hydro_choice"]  = parse(df_exper[:hydro_choice][i_exper])
+  opt["filter_choice"] = parse(df_exper[:filter_choice][i_exper])
+  opt["nens"]          = round(Int64, df_exper[:nens][i_exper])
+  opt["warmup"]        = round(Int64, df_exper[:warmup][i_exper])
+  opt["date_start"]    = df_exper[:date_start][i_exper]
+  opt["date_stop"]     = df_exper[:date_stop][i_exper]
+
+  opt["path_inputs"]   = path_inputs
+  opt["path_save"]     = path_save
+
   # Run for all stations
 
-  run_all_stations(path_inputs, path_save, date_start, date_stop, snow_choice, hydro_choice, filter_choice, nens)
+  run_all_stations(opt)
 
 end
 
-
 # Run over all stations
 
-function run_all_stations(path_inputs, path_save, date_start, date_stop, snow_choice, hydro_choice, filter_choice, nens)
+function run_all_stations(opt)
 
+  # Empty dataframes for summary statistics
+
+  df_summary = DataFrame(Station = String[], NSE = Float64[], KGE = Float64[])
+  
   # Loop over all watersheds
 
-  dir_all = readdir(path_inputs)
+  dir_all = readdir(opt["path_inputs"])
 
   for dir_cur in dir_all
 
     # Load data
 
-    date, tair, prec, q_obs, frac = load_data("$path_inputs/$dir_cur")
+    date, tair, prec, q_obs, frac = load_data("$(opt["path_inputs"])/$dir_cur")
 
     # Crop data
 
-    date, tair, prec, q_obs = crop_data(date, tair, prec, q_obs, date_start, date_stop)
+    date, tair, prec, q_obs = crop_data(date, tair, prec, q_obs, opt["date_start"], opt["date_stop"])
 
     # Compute potential evapotranspiration
 
-    epot = epot_monthly(date)
+     epot = eval(Expr(:call, opt["epot_choice"], date))
 
     # Initilize model
 
     tstep = 24.0
 
-    st_snow = eval(Expr(:call, snow_choice, tstep, date[1], frac))
-    st_hydro = eval(Expr(:call, hydro_choice, tstep, date[1]))
+    st_snow = eval(Expr(:call, opt["snow_choice"], tstep, date[1], frac))
+    st_hydro = eval(Expr(:call, opt["hydro_choice"], tstep, date[1]))
 
     # Run calibration
 
-    param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs)
+    param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs;
+                                              warmup = opt["warmup"])
     
     # Run model and filter
 
-    st_snow = eval(Expr(:call, snow_choice, tstep, date[1], param_snow, frac))
-    st_hydro = eval(Expr(:call, hydro_choice, tstep,  date[1], param_hydro))
+    st_snow = eval(Expr(:call, opt["snow_choice"], tstep, date[1], param_snow, frac))
+    st_hydro = eval(Expr(:call, opt["hydro_choice"], tstep,  date[1], param_hydro))
 
-    q_res = eval(Expr(:call, filter_choice, st_snow, st_hydro, prec, tair, epot, q_obs, nens))
+    q_res = eval(Expr(:call, opt["filter_choice"], st_snow, st_hydro, prec, tair, epot, q_obs, opt["nens"]))
 
     # Add results to dataframe
 
@@ -104,9 +103,17 @@ function run_all_stations(path_inputs, path_save, date_start, date_stop, snow_ch
 
     df_res = DataFrame(date = date, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max)
 
+    # Compute summary statistics
+
+    station = dir_cur[1:end-5]
+    nse_res = nse(q_sim[opt["warmup"]:end], q_obs[opt["warmup"]:end])
+    kge_res = kge(q_sim[opt["warmup"]:end], q_obs[opt["warmup"]:end])
+
+    push!(df_summary, [station nse_res kge_res])
+
     # Save results to txt file
 
-    file_name = joinpath(path_save, "tables", dir_cur[1:end-5] * "_station.txt")
+    file_name = joinpath(opt["path_save"], "tables", dir_cur[1:end-5] * "_station.txt")
 
     writetable(file_name, df_res, quotemark = '"', separator = '\t')
 
@@ -124,12 +131,14 @@ function run_all_stations(path_inputs, path_save, date_start, date_stop, snow_ch
 
     plt[:legend]()
     
-    file_name = joinpath(path_save, "figures", dir_cur[1:end-5] * "_station.png")
+    file_name = joinpath(opt["path_save"], "figures", dir_cur[1:end-5] * "_station.png")
     
     savefig(file_name, dpi = 600)
     close(fig)
 
   end
+
+  writetable(string(opt["path_save"], "/summary_table.txt"), df_summary, quotemark = '"', separator = '\t')
 
 end
 
@@ -138,6 +147,6 @@ end
 
 for i_exper = 1:size(df_exper, 1)
 
-  run_single_experiment(path_inputs, path_save, date_start, date_stop, df_exper, i_exper)
+  run_single_experiment(path_inputs, path_save, df_exper, i_exper)
 
 end
