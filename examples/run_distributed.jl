@@ -100,6 +100,6 @@ end
 
 # Simulation period
 
-date_vec = Date(2010, 1, 1):Date(2010, 1, 10)
+date_vec = DateTime(2010, 1, 1):DateTime(2010, 1, 10)
 
 run_dist(date_vec)
