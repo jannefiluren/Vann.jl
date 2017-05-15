@@ -80,113 +80,121 @@ function run_all_stations(opt)
 
   for dir_cur in dir_all
 
-    # Load data
+    try
 
-    date, tair, prec, q_obs, frac = load_data("$(opt["path_inputs"])/$dir_cur")
+      # Load data
 
-    # Crop data
+      date, tair, prec, q_obs, frac = load_data("$(opt["path_inputs"])/$dir_cur")
 
-    date, tair, prec, q_obs = crop_data(date, tair, prec, q_obs, opt["date_start"], opt["date_stop"])
+      # Crop data
 
-    # Compute potential evapotranspiration
+      date, tair, prec, q_obs = crop_data(date, tair, prec, q_obs, opt["date_start"], opt["date_stop"])
 
-    epot = eval(Expr(:call, opt["epot_choice"], date))
+      # Compute potential evapotranspiration
 
-    # Precipitation correction step
+      epot = eval(Expr(:call, opt["epot_choice"], date))
 
-    if sum(~isnan(q_obs)) > (3*365)
+      # Precipitation correction step
 
-      ikeep = ~isnan(q_obs)
+      if sum(~isnan(q_obs)) > (3*365)
 
-      prec_tmp = sum(prec .* repmat(frac, 1, size(prec,2)), 1)
+        ikeep = ~isnan(q_obs)
+
+        prec_tmp = sum(prec .* repmat(frac, 1, size(prec,2)), 1)
+        
+        prec_sum = sum(prec_tmp[ikeep])
+        q_sum = sum(q_obs[ikeep])
+        epot_sum = sum(epot[ikeep])
+
+        pcorr = (q_sum + 0.5 * epot_sum) / prec_sum
+
+        prec = pcorr * prec
+
+      else
+
+        warn("Not enough runoff data for calibration (see folder $dir_cur)")
+        continue
+
+      end
+
+      # Initilize model
+
+      st_snow = eval(Expr(:call, opt["snow_choice"], opt["tstep"], date[1], frac))
+      st_hydro = eval(Expr(:call, opt["hydro_choice"], opt["tstep"], date[1]))
+
+      # Run calibration
+
+      param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs;
+                                                warmup = opt["warmup"])
+
+      # Run model with optimal parameters
+
+      st_snow = eval(Expr(:call, opt["snow_choice"], opt["tstep"], date[1], param_snow, frac))
+      st_hydro = eval(Expr(:call, opt["hydro_choice"], opt["tstep"], date[1], param_hydro))
+
+      q_cal = run_model(st_snow, st_hydro, date, tair, prec, epot)
+
+      # Run model with filter filter
+
+      st_snow = eval(Expr(:call, opt["snow_choice"], opt["tstep"], date[1], param_snow, frac))
+      st_hydro = eval(Expr(:call, opt["hydro_choice"], opt["tstep"], date[1], param_hydro))
+
+      kw_args = Expr(:kw, :test_forecast, opt["test_forecast"])
+
+      q_da, q_sim_forecast, q_obs_forecast = eval(Expr(:call, opt["filter_choice"], st_snow, st_hydro, prec, tair, epot, q_obs, opt["nens"], kw_args))
+    
+      # Add data to summary tables
+
+      station = dir_cur[1:end-5]
+      nse_cal = nse(q_cal[opt["warmup"]:end], q_obs[opt["warmup"]:end])
+      kge_cal = kge(q_cal[opt["warmup"]:end], q_obs[opt["warmup"]:end])
+      nse_da  = nse(q_da[opt["warmup"]:end, 1], q_obs[opt["warmup"]:end])
+      kge_da  = kge(q_da[opt["warmup"]:end, 1], q_obs[opt["warmup"]:end])
+
+      push!(df_summary, [station; nse_cal; kge_cal; nse_da; kge_da])
+
+      nse_forecast = [nse(q_sim_forecast[opt["warmup"]:end, i], q_obs_forecast[opt["warmup"]:end, i]) for i in 1:size(q_sim_forecast, 2)]
+      kge_forecast = [kge(q_sim_forecast[opt["warmup"]:end, i], q_obs_forecast[opt["warmup"]:end, i]) for i in 1:size(q_sim_forecast, 2)]
+
+      push!(df_forecast, [station; nse_forecast; kge_forecast])
       
-      prec_sum = sum(prec_tmp[ikeep])
-      q_sum = sum(q_obs[ikeep])
-      epot_sum = sum(epot[ikeep])
+      # Add time series to file
 
-      pcorr = (q_sum + 0.5 * epot_sum) / prec_sum
+      q_obs = round(q_obs, 2)
+      q_sim = round(q_da[:, 1], 2)
+      q_min = round(q_da[:, 2], 2)
+      q_max = round(q_da[:, 3], 2)
 
-      prec = pcorr * prec
+      df_res = DataFrame(date = date, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max)
 
-    else
+      file_name = joinpath(opt["path_save"], "tables", dir_cur[1:end-5] * "_station.txt")
 
-      warn("Not enough runoff data for calibration (see folder $dir_cur)")
-      continue
+      writetable(file_name, df_res, quotemark = '"', separator = '\t')
+
+      # Save plots
+
+      ioff()
+
+      fig = plt[:figure](figsize = (12,7))
+
+      plt[:style][:use]("ggplot")
+
+      plt[:plot](date, q_obs, linewidth = 1.2, color = "k", label = "Observed", zorder = 1)
+      plt[:fill_between](date, q_max, q_min, facecolor = "r", edgecolor = "r", label = "Simulated", alpha = 0.55, zorder = 2)
+      plt[:ylabel]("Runoff (mm/day)")
+
+      plt[:legend]()
+      
+      file_name = joinpath(opt["path_save"], "figures", dir_cur[1:end-5] * "_station.png")
+      
+      savefig(file_name, dpi = 600)
+      close(fig)
+
+    catch
+
+      info("Unable to run files in directory $(dir_cur)\n")
 
     end
-
-    # Initilize model
-
-    st_snow = eval(Expr(:call, opt["snow_choice"], opt["tstep"], date[1], frac))
-    st_hydro = eval(Expr(:call, opt["hydro_choice"], opt["tstep"], date[1]))
-
-    # Run calibration
-
-    param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs;
-                                              warmup = opt["warmup"])
-
-    # Run model with optimal parameters
-
-    st_snow = eval(Expr(:call, opt["snow_choice"], opt["tstep"], date[1], param_snow, frac))
-    st_hydro = eval(Expr(:call, opt["hydro_choice"], opt["tstep"], date[1], param_hydro))
-
-    q_cal = run_model(st_snow, st_hydro, date, tair, prec, epot)
-
-    # Run model with filter filter
-
-    st_snow = eval(Expr(:call, opt["snow_choice"], opt["tstep"], date[1], param_snow, frac))
-    st_hydro = eval(Expr(:call, opt["hydro_choice"], opt["tstep"], date[1], param_hydro))
-
-    kw_args = Expr(:kw, :test_forecast, opt["test_forecast"])
-
-    q_da, q_sim_forecast, q_obs_forecast = eval(Expr(:call, opt["filter_choice"], st_snow, st_hydro, prec, tair, epot, q_obs, opt["nens"], kw_args))
-  
-    # Add data to summary tables
-
-    station = dir_cur[1:end-5]
-    nse_cal = nse(q_cal[opt["warmup"]:end], q_obs[opt["warmup"]:end])
-    kge_cal = kge(q_cal[opt["warmup"]:end], q_obs[opt["warmup"]:end])
-    nse_da  = nse(q_da[opt["warmup"]:end, 1], q_obs[opt["warmup"]:end])
-    kge_da  = kge(q_da[opt["warmup"]:end, 1], q_obs[opt["warmup"]:end])
-
-    push!(df_summary, [station; nse_cal; kge_cal; nse_da; kge_da])
-
-    nse_forecast = [nse(q_sim_forecast[opt["warmup"]:end, i], q_obs_forecast[opt["warmup"]:end, i]) for i in 1:size(q_sim_forecast, 2)]
-    kge_forecast = [kge(q_sim_forecast[opt["warmup"]:end, i], q_obs_forecast[opt["warmup"]:end, i]) for i in 1:size(q_sim_forecast, 2)]
-
-    push!(df_forecast, [station; nse_forecast; kge_forecast])
-    
-    # Add time series to file
-
-    q_obs = round(q_obs, 2)
-    q_sim = round(q_da[:, 1], 2)
-    q_min = round(q_da[:, 2], 2)
-    q_max = round(q_da[:, 3], 2)
-
-    df_res = DataFrame(date = date, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max)
-
-    file_name = joinpath(opt["path_save"], "tables", dir_cur[1:end-5] * "_station.txt")
-
-    writetable(file_name, df_res, quotemark = '"', separator = '\t')
-
-    # Save plots
-
-    ioff()
-
-    fig = plt[:figure](figsize = (12,7))
-
-    plt[:style][:use]("ggplot")
-
-    plt[:plot](date, q_obs, linewidth = 1.2, color = "k", label = "Observed", zorder = 1)
-    plt[:fill_between](date, q_max, q_min, facecolor = "r", edgecolor = "r", label = "Simulated", alpha = 0.55, zorder = 2)
-    plt[:ylabel]("Runoff (mm/day)")
-
-    plt[:legend]()
-    
-    file_name = joinpath(opt["path_save"], "figures", dir_cur[1:end-5] * "_station.png")
-    
-    savefig(file_name, dpi = 600)
-    close(fig)
 
   end
 
