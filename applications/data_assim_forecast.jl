@@ -2,16 +2,21 @@
 # Add packages
 
 using Vann
-using DataAssim
-using ExcelReaders
-using DataFrames
 using PyPlot
+using DataFrames
+using ExcelReaders
+using DataAssim
+
+using ExcelReaders
+using JLD
+using CSV
+
 
 # Settings
 
 file_exper  = "C:/Work/Studies/vann/experiments.xlsx"
 path_inputs = "C:/Work/Studies/vann/data/norway"
-path_save   = "C:/Work/Studies/vann/filter_forecast"
+path_save   = "C:/Work/Studies/vann/TEST_SCOPE"
 
 df_exper = readxlsheet(DataFrame, file_exper, "Filter")
 
@@ -80,9 +85,36 @@ function run_all_stations(opt)
 
   for dir_cur in dir_all
 
+    info("Running for data in $(dir_cur)\n")
+
     # Load data
 
-    date, tair, prec, q_obs, frac = load_data("$(opt["path_inputs"])/$dir_cur")
+
+
+
+    # @show date[1]    # This always crashes the program if uncommented (ERROR: LoadError: UndefVarError: date not defined)
+    # @show tair[1]    # This always crashes the program if uncommented (ERROR: LoadError: UndefVarError: tair not defined)
+    # @show prec[1]    # This always crashes the program if uncommented (ERROR: LoadError: UndefVarError: prec not defined)
+    # @show q_obs[1]   # This always crashes the program if uncommented (ERROR: LoadError: UndefVarError: q_obs not defined)
+    # @show frac[1]    # This always crashes the program if uncommented (ERROR: LoadError: UndefVarError: frac not defined)
+
+    # frac = []   # *** This makes the program work, but why do I not need to declare any of the other variables???
+    
+    try
+      date, tair, prec, q_obs, frac = load_data("$(opt["path_inputs"])/$dir_cur")    # Function that loads data from text files
+    catch
+      continue   # Skip rest of for loop if the input text files contain corrupt data
+    end
+
+    @show date[1]    # This always works
+    @show tair[1]    # This always works
+    @show prec[1]    # This always works
+    @show q_obs[1]   # This always works
+    @show frac[1]    # Here the program crashes unless I define the variable frac before the try-catch-block (***)
+
+
+
+
 
     # Crop data
 
