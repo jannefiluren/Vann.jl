@@ -5,6 +5,7 @@ using Distributions
 using DataAssim
 using PyPlot
 using CSV
+using DataFrames
 
 abstract Hydro
 abstract Snow
@@ -13,7 +14,7 @@ export Hbv, Gr4j
 export TinBasic, TinStandard
 
 export run_timestep, run_timestep
-export load_data, crop_data
+export load_data, crop_data, load_operational
 export init_states, get_states
 export run_model_calib, calib_wrapper
 export run_model

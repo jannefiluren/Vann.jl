@@ -44,6 +44,74 @@ function load_data(folder, file_q_obs = "Q_obs.txt", file_tair = "Tair.txt",
 
 end
 
+
+
+
+
+
+
+
+
+
+# Load operational data from text files
+
+function load_operational(folder, file_q_obs = "Q_obs.txt", file_tair = "Tair.txt",
+                   file_prec = "Prec.txt", file_metadata = "metadata.txt")
+
+  # Read air temperature data
+
+  str   = readline("$folder/$file_tair")
+  nsep  = length(matchall(r";", str))
+  tmp   = CSV.read("$folder/$file_tair", delim = ";", header = false,
+                   dateformat="yyyy-mm-dd HH:MM", nullable = false, types = vcat(DateTime, repmat([Float64], nsep)))
+  tair  = Array(tmp[:, 2:end])
+  tair  = transpose(tair)
+
+  # Read precipitation data
+
+  str   = readline("$folder/$file_tair")
+  nsep  = length(matchall(r";", str))
+  tmp   = CSV.read("$folder/$file_prec", delim = ";", header = false,
+                  dateformat="yyyy-mm-dd HH:MM", nullable = false, types = vcat(DateTime, repmat([Float64], nsep)))
+  prec  = Array(tmp[:, 2:end])
+  prec  = transpose(prec)
+
+  # Read runoff data
+
+  tmp   = CSV.read("$folder/$file_q_obs", delim = ";", header = false,
+                   dateformat="yyyy-mm-dd HH:MM", nullable = false, types = [DateTime, Float64])
+  q_obs = Array(tmp[:, 2])
+
+  q_obs[q_obs .== -999.0] = NaN
+
+  # Read elevation band data
+
+  metadata = readtable("$folder/$file_metadata", separator = ';')
+  frac = convert(Array{Float64,1}, metadata[:area] / sum(metadata[:area]))
+
+  # Get time data
+
+  date = Array(tmp[:, 1])
+
+  # Return data
+
+  return date, tair, prec, q_obs, frac
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Crop data from start to stop date
 
 function crop_data(date, tair, prec, q_obs, date_start, date_stop)

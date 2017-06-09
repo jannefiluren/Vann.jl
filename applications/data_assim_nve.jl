@@ -63,78 +63,86 @@ function run_all_stations(opt)
 
   for dir_cur in dir_all
 
-    # Load data
+    try
 
-    date, tair, prec, q_obs, frac = load_data("$(opt["path_inputs"])/$dir_cur")
+      # Load data
 
-    # Crop data
+      date, tair, prec, q_obs, frac = load_data("$(opt["path_inputs"])/$dir_cur")
 
-    date, tair, prec, q_obs = crop_data(date, tair, prec, q_obs, opt["date_start"], opt["date_stop"])
+      # Crop data
 
-    # Compute potential evapotranspiration
+      date, tair, prec, q_obs = crop_data(date, tair, prec, q_obs, opt["date_start"], opt["date_stop"])
 
-     epot = eval(Expr(:call, opt["epot_choice"], date))
+      # Compute potential evapotranspiration
 
-    # Initilize model
+      epot = eval(Expr(:call, opt["epot_choice"], date))
 
-    tstep = 24.0
+      # Initilize model
 
-    st_snow = eval(Expr(:call, opt["snow_choice"], tstep, date[1], frac))
-    st_hydro = eval(Expr(:call, opt["hydro_choice"], tstep, date[1]))
+      tstep = 24.0
 
-    # Run calibration
+      st_snow = eval(Expr(:call, opt["snow_choice"], tstep, date[1], frac))
+      st_hydro = eval(Expr(:call, opt["hydro_choice"], tstep, date[1]))
 
-    param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs;
-                                              warmup = opt["warmup"])
-    
-    # Run model and filter
+      # Run calibration
 
-    st_snow = eval(Expr(:call, opt["snow_choice"], tstep, date[1], param_snow, frac))
-    st_hydro = eval(Expr(:call, opt["hydro_choice"], tstep,  date[1], param_hydro))
+      param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs;
+                                                warmup = opt["warmup"])
+      
+      # Run model and filter
 
-    q_res = eval(Expr(:call, opt["filter_choice"], st_snow, st_hydro, prec, tair, epot, q_obs, opt["nens"]))
+      st_snow = eval(Expr(:call, opt["snow_choice"], tstep, date[1], param_snow, frac))
+      st_hydro = eval(Expr(:call, opt["hydro_choice"], tstep,  date[1], param_hydro))
 
-    # Add results to dataframe
+      q_res = eval(Expr(:call, opt["filter_choice"], st_snow, st_hydro, prec, tair, epot, q_obs, opt["nens"]))
 
-    q_obs = round(q_obs, 2)
-    q_sim = round(q_res[:, 1], 2)
-    q_min = round(q_res[:, 2], 2)
-    q_max = round(q_res[:, 3], 2)
+      # Add results to dataframe
 
-    df_res = DataFrame(date = date, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max)
+      q_obs = round(q_obs, 2)
+      q_sim = round(q_res[:, 1], 2)
+      q_min = round(q_res[:, 2], 2)
+      q_max = round(q_res[:, 3], 2)
 
-    # Compute summary statistics
+      df_res = DataFrame(date = date, q_obs = q_obs, q_sim = q_sim, q_min = q_min, q_max = q_max)
 
-    station = dir_cur[1:end-5]
-    nse_res = nse(q_sim[opt["warmup"]:end], q_obs[opt["warmup"]:end])
-    kge_res = kge(q_sim[opt["warmup"]:end], q_obs[opt["warmup"]:end])
+      # Compute summary statistics
 
-    push!(df_summary, [station nse_res kge_res])
+      station = dir_cur[1:end-5]
+      nse_res = nse(q_sim[opt["warmup"]:end], q_obs[opt["warmup"]:end])
+      kge_res = kge(q_sim[opt["warmup"]:end], q_obs[opt["warmup"]:end])
 
-    # Save results to txt file
+      push!(df_summary, [station nse_res kge_res])
 
-    file_name = joinpath(opt["path_save"], "tables", dir_cur[1:end-5] * "_station.txt")
+      # Save results to txt file
 
-    writetable(file_name, df_res, quotemark = '"', separator = '\t')
+      file_name = joinpath(opt["path_save"], "tables", dir_cur[1:end-5] * "_station.txt")
 
-    # Plot results
+      writetable(file_name, df_res, quotemark = '"', separator = '\t')
 
-    ioff()
+      # Plot results
 
-    fig = plt[:figure](figsize = (12,7))
+      ioff()
 
-    plt[:style][:use]("ggplot")
+      fig = plt[:figure](figsize = (12,7))
 
-    plt[:plot](date, q_obs, linewidth = 1.2, color = "k", label = "Observed", zorder = 1)
-    plt[:fill_between](date, q_max, q_min, facecolor = "r", edgecolor = "r", label = "Simulated", alpha = 0.55, zorder = 2)
-    plt[:ylabel]("Runoff (mm/day)")
+      plt[:style][:use]("ggplot")
 
-    plt[:legend]()
-    
-    file_name = joinpath(opt["path_save"], "figures", dir_cur[1:end-5] * "_station.png")
-    
-    savefig(file_name, dpi = 600)
-    close(fig)
+      plt[:plot](date, q_obs, linewidth = 1.2, color = "k", label = "Observed", zorder = 1)
+      plt[:fill_between](date, q_max, q_min, facecolor = "r", edgecolor = "r", label = "Simulated", alpha = 0.55, zorder = 2)
+      plt[:ylabel]("Runoff (mm/day)")
+
+      plt[:legend]()
+      
+      file_name = joinpath(opt["path_save"], "figures", dir_cur[1:end-5] * "_station.png")
+      
+      savefig(file_name, dpi = 600)
+      close(fig)
+
+    catch
+
+      info("Unable to run files in directory $(dir_cur)\n")
+
+    end
 
   end
 
