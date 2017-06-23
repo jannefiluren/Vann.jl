@@ -8,7 +8,7 @@ using Base.Test
 
 # Read data
 
-filename = joinpath(dirname(@__FILE__), "../data/airgr/test_data.txt")
+filename = joinpath(Pkg.dir("Vann"), "data", "airgr", "test_data.txt")
 
 data = readdlm(filename, ',', header = true)
 
@@ -29,15 +29,15 @@ time = DateTime(2000,1,1)
 
 # Select model
 
-st_gr4j = Gr4j(tstep, time, param);
+st_gr4j = Gr4j(tstep, time, param)
 
 # Run model
 
-q_sim = run_model(st_gr4j, prec, epot);
+q_sim = run_model(st_gr4j, prec, epot)
 
 # Compute largest error
 
-err_max = maximum(map(abs, q_sim - q_obs));
+err_max = maximum(map(abs, q_sim - q_obs))
 
 @test err_max < 1.
 
@@ -50,7 +50,7 @@ println("Gr4j maximum error = " * string(err_max))
 
 # Load data
 
-filename = joinpath(dirname(@__FILE__), "../data/atnasjo")
+filename = joinpath(Pkg.dir("Vann"), "data", "atnasjo")
 
 date, tair, prec, q_obs, frac = load_data(filename, "Q_ref.txt")
 
@@ -87,7 +87,7 @@ println("Gr4j + TinBasic maximum error = " * string(err_max))
 
 # Load data
 
-filename = joinpath(dirname(@__FILE__), "../data/atnasjo")
+filename = joinpath(Pkg.dir("Vann", "data", "atnasjo")
 
 date, tair, prec, q_obs, frac = load_data(filename, "Q_ref.txt")
 
