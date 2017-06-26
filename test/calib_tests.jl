@@ -13,9 +13,9 @@ filename = joinpath(Pkg.dir("Vann"), "data", "airgr", "test_data.txt")
 
 data = readdlm(filename, ',', header = true)
 
-prec  = data[1][:,1]
-epot  = data[1][:,2]
-q_obs = data[1][:,3]
+prec  = data[1][1:1000,1]
+epot  = data[1][1:1000,2]
+q_obs = data[1][1:1000,3]
 
 prec = transpose(prec)
 epot = transpose(epot)
@@ -70,6 +70,13 @@ date, tair, prec, q_obs, frac = load_data(filename, "Q_ref.txt")
 tstep = 24.0
 
 time = date[1]
+
+# Crop data
+
+date = date[1:1000]
+tair = tair[:,1:1000]
+prec = prec[:,1:1000]
+q_obs = q_obs[1:1000]
 
 # Compute potential evapotranspiration
 
