@@ -124,7 +124,7 @@ function run_all_stations(opt)
 
       # Run calibration
 
-      param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs;
+      param_snow, param_hydro = run_model_calib(st_snow, st_hydro, tair, prec, epot, q_obs;
                                                 warmup = opt["warmup"])
 
       # Run model with optimal parameters
@@ -132,7 +132,7 @@ function run_all_stations(opt)
       st_snow = eval(Expr(:call, opt["snow_choice"], opt["tstep"], date[1], param_snow, frac))
       st_hydro = eval(Expr(:call, opt["hydro_choice"], opt["tstep"], date[1], param_hydro))
 
-      q_cal = run_model(st_snow, st_hydro, date, tair, prec, epot)
+      q_cal = run_model(st_snow, st_hydro, tair, prec, epot)
 
       # Run model with filter filter
 

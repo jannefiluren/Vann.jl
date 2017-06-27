@@ -137,7 +137,7 @@ function calib_all_stations(opt)
 
       # Run calibration
 
-      param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs;
+      param_snow, param_hydro = run_model_calib(st_snow, st_hydro, tair, prec, epot, q_obs;
                                                 force_states = opt["force_states"], warmup = opt["warmup"])
 
       println("Snow model parameters: $param_snow")
@@ -150,7 +150,7 @@ function calib_all_stations(opt)
 
       # Run model with best parameter set
 
-      q_sim, st_snow, st_hydro = run_model(st_snow, st_hydro, date, tair, prec, epot; return_all = true)
+      q_sim, st_snow, st_hydro = run_model(st_snow, st_hydro, tair, prec, epot; return_all = true)
       
       # Store results in data frame
 
@@ -210,7 +210,7 @@ function calib_all_stations(opt)
       
       # Run model with best parameter set
 
-      q_sim, st_snow, st_hydro = run_model(st_snow, st_hydro, date, tair, prec, epot; return_all = true)
+      q_sim, st_snow, st_hydro = run_model(st_snow, st_hydro, tair, prec, epot; return_all = true)
 
       # Store results in data frame
 

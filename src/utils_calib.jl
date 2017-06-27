@@ -79,13 +79,13 @@ end
 
 """
 
-    calib_wrapper(param, st_snow, st_hydro, date, tair, prec, epot, q_obs)
+    calib_wrapper(param, st_snow, st_hydro, tair, prec, epot, q_obs)
 
 Wrapper function required for calibrating snow and hydrological routing model.
 
 """
 
-function calib_wrapper(param, st_snow, st_hydro, date, tair, prec, epot, 
+function calib_wrapper(param, st_snow, st_hydro, tair, prec, epot, 
                        q_obs, q_sim, states_sim, warmup, force_states)
 
     # Assign parameter values
@@ -104,7 +104,7 @@ function calib_wrapper(param, st_snow, st_hydro, date, tair, prec, epot,
 
     for itime in 1:ntimes
 
-        get_input(st_snow, prec, tair, date, itime)
+        get_input(st_snow, prec, tair, itime)
 
         run_timestep(st_snow)
 
@@ -198,13 +198,13 @@ end
 
 """
 
-    run_model_calib(st_snow::Snow, st_hydro::Hydro, date, tair, prec, epot, q_obs)
+    run_model_calib(st_snow::Snow, st_hydro::Hydro, tair, prec, epot, q_obs)
 
 Run calibration of snow and hydrological routing model.
 
 """
 
-function run_model_calib(st_snow::Snow, st_hydro::Hydro, date, tair, prec, epot, q_obs;
+function run_model_calib(st_snow::Snow, st_hydro::Hydro, tair, prec, epot, q_obs;
                          verbose = :silent, warmup = 3*365, force_states = false)
 
     # Get parameter range
@@ -227,7 +227,7 @@ function run_model_calib(st_snow::Snow, st_hydro::Hydro, date, tair, prec, epot,
     
     # Run calibration
 
-    calib_wrapper_tmp(param) = calib_wrapper(param, st_snow, st_hydro, date, tair, prec, epot, 
+    calib_wrapper_tmp(param) = calib_wrapper(param, st_snow, st_hydro, tair, prec, epot, 
                                              q_obs, q_sim, states_sim, warmup, force_states)
 
     res = bboptimize(calib_wrapper_tmp; SearchRange = param_range, TraceMode = verbose)

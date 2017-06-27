@@ -6,10 +6,10 @@ The TinBasic type contains the state variables (swe), the inputs
 length (tstep) for a basic temperature index model.
 """
 type TinBasic <: Snow
-
+  
+  swe::Array{Float64,1}
   prec::Array{Float64,1}
   tair::Array{Float64,1}
-  swe::Array{Float64,1}
   q_sim::Array{Float64,1}
   param::Array{Float64,1}
   frac::Array{Float64,1}
@@ -36,7 +36,7 @@ function TinBasic(tstep::Float64, time::DateTime, frac::Array{Float64,1})
   q_sim  = zeros(Float64, nreg)
   param  = [0.0, 3.0, 1.0]
 
-  TinBasic(prec, tair, swe, q_sim, param, frac, tstep, time)
+  TinBasic(swe, prec, tair, q_sim, param, frac, tstep, time)
 
 end
 
@@ -57,7 +57,7 @@ function TinBasic(tstep::Float64, time::DateTime, param::Array{Float64,1}, frac:
   swe    = zeros(Float64, nreg)
   q_sim  = zeros(Float64, nreg)
 
-  TinBasic(prec, tair, swe, q_sim, param, frac, tstep, time)
+  TinBasic(swe, prec, tair, q_sim, param, frac, tstep, time)
 
 end
 

@@ -43,7 +43,7 @@ end
 
 # Model wrapper for snow model and hydrological response model
 
-function run_model(mdata_snow, mdata_hydro, date, tair, prec, epot; return_all = false)
+function run_model(mdata_snow, mdata_hydro, tair, prec, epot; return_all = false)
 
   # Number of time steps
 
@@ -62,7 +62,7 @@ function run_model(mdata_snow, mdata_hydro, date, tair, prec, epot; return_all =
 
   for itime in 1:ntimes
 
-    get_input(mdata_snow, prec, tair, date, itime)
+    get_input(mdata_snow, prec, tair, itime)
 
     run_timestep(mdata_snow)
 
@@ -92,7 +92,7 @@ end
 
 # Model wrapper for snow model
 
-function run_model(mdata_snow, date, tair, prec; return_all = false)
+function run_model(mdata_snow, tair, prec; return_all = false)
 
   # Number of time steps
 
@@ -110,7 +110,7 @@ function run_model(mdata_snow, date, tair, prec; return_all = false)
 
   for itime in 1:ntimes
 
-    get_input(mdata_snow, prec, tair, date, itime)
+    get_input(mdata_snow, prec, tair, itime)
 
     run_timestep(mdata_snow)
 

@@ -72,7 +72,7 @@ param_hydro = [74.59, 0.81, 214.98, 1.24]
 st_snow  = TinBasic(tstep, time, param_snow, frac)
 st_hydro = Gr4j(tstep, time, param_hydro)
 
-q_sim = run_model(st_snow, st_hydro, date, tair, prec, epot)
+q_sim = run_model(st_snow, st_hydro, tair, prec, epot)
 
 # Compute largest error
 
@@ -109,7 +109,7 @@ param_hydro = [74.59, 0.81, 214.98, 1.24]
 st_snow  = TinStandard(tstep, time, param_snow, frac)
 st_hydro = Gr4j(tstep, time, param_hydro)
 
-q_sim = run_model(st_snow, st_hydro, date, tair, prec, epot)
+q_sim = run_model(st_snow, st_hydro, tair, prec, epot)
 
 # Compute largest error
 

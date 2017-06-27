@@ -7,11 +7,10 @@ length (tstep) for a standard temperature index model.
 """
 type TinStandard <: Snow
 
-  prec::Array{Float64,1}
-  tair::Array{Float64,1}
-  date::DateTime
   swe::Array{Float64,1}
   lw::Array{Float64,1}
+  prec::Array{Float64,1}
+  tair::Array{Float64,1}
   q_sim::Array{Float64,1}
   param::Array{Float64,1}
   frac::Array{Float64,1}
@@ -32,15 +31,14 @@ up to unity.
 function TinStandard(tstep::Float64, time::DateTime, frac::Array{Float64,1})
 
   nzones = length(frac)
-  prec   = zeros(Float64, nzones)
-  tair   = zeros(Float64, nzones)
-  date   = DateTime()
   swe    = zeros(Float64, nzones)
   lw     = zeros(Float64, nzones)
+  prec   = zeros(Float64, nzones)
+  tair   = zeros(Float64, nzones)
   q_sim  = zeros(Float64, nzones)
   param  = zeros(Float64, 5)
 
-  TinStandard(prec, tair, date, swe, lw, q_sim, param, frac, tstep, time)
+  TinStandard(swe, lw, prec, tair, q_sim, param, frac, tstep, time)
 
 end
 
@@ -56,14 +54,13 @@ up to unity.
 function TinStandard(tstep::Float64, time::DateTime, param::Array{Float64,1}, frac::Array{Float64,1})
 
   nzones = length(frac)
-  prec   = zeros(Float64, nzones)
-  tair   = zeros(Float64, nzones)
-  date   = DateTime()
   swe    = zeros(Float64, nzones)
   lw     = zeros(Float64, nzones)
+  prec   = zeros(Float64, nzones)
+  tair   = zeros(Float64, nzones)
   q_sim  = zeros(Float64, nzones)
 
-  TinStandard(prec, tair, date, swe, lw, q_sim, param, frac, tstep, time)
+  TinStandard(swe, lw, prec, tair, q_sim, param, frac, tstep, time)
 
 end
 
@@ -190,7 +187,7 @@ function run_timestep(mdata::TinStandard)
     whcap   = mdata.param[4]
     pcorr   = mdata.param[5]
 
-    ddf = compute_ddf(mdata.date, ddf_min, ddf_max)
+    ddf = compute_ddf(mdata.time, ddf_min, ddf_max)
 
     for ireg in eachindex(mdata.swe)
 

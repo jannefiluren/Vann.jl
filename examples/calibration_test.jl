@@ -28,7 +28,7 @@ st_hydro = eval(Expr(:call, hydro_choice, tstep, time))
 
 # Run calibration
 
-param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs)
+param_snow, param_hydro = run_model_calib(st_snow, st_hydro, tair, prec, epot, q_obs)
 
 println(param_snow)
 println(param_hydro)
@@ -40,7 +40,7 @@ st_hydro = eval(Expr(:call, hydro_choice, tstep, time, param_hydro))
 
 # Run model with best parameter set
 
-q_sim, snow_out, hydro_out = run_model(st_snow, st_hydro, date, tair, prec, epot; return_all = true)
+q_sim, snow_out, hydro_out = run_model(st_snow, st_hydro, tair, prec, epot; return_all = true)
 
 # Plot results
 

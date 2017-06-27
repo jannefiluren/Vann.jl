@@ -86,7 +86,7 @@ function run_all_stations(opt)
 
       # Run calibration
 
-      param_snow, param_hydro = run_model_calib(st_snow, st_hydro, date, tair, prec, epot, q_obs;
+      param_snow, param_hydro = run_model_calib(st_snow, st_hydro, tair, prec, epot, q_obs;
                                                 warmup = opt["warmup"])
       
       # Run model and filter

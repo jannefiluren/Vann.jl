@@ -165,20 +165,7 @@ end
 
 # Assign input data to snow model
 
-function get_input(st_snow::TinStandard, prec, tair, date, itime)
-
-  st_snow.date = date[itime]
-
-  for izone in eachindex(st_snow.prec)
-
-    st_snow.prec[izone] = prec[izone, itime]
-    st_snow.tair[izone] = tair[izone, itime]
-
-  end
-
-end
-
-function get_input(st_snow::TinBasic, prec, tair, date, itime)
+function get_input(st_snow::Snow, prec, tair, itime)
 
   for izone in eachindex(st_snow.prec)
 
