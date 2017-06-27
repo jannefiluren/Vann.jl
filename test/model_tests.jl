@@ -87,7 +87,7 @@ println("Gr4j + TinBasic maximum error = " * string(err_max))
 
 # Load data
 
-filename = joinpath(Pkg.dir("Vann", "data", "atnasjo")
+filename = joinpath(Pkg.dir("Vann", "data", "atnasjo"))
 
 date, tair, prec, q_obs, frac = load_data(filename, "Q_ref.txt")
 
@@ -115,4 +115,4 @@ q_sim = run_model(st_snow, st_hydro, date, tair, prec, epot)
 
 err_max = maximum(map(abs, q_sim - q_obs))
 
-println("Gr4j + TinBasic maximum error = " * string(err_max))
+println("Gr4j + TinStandard maximum error = " * string(err_max))

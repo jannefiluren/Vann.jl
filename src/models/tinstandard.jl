@@ -12,7 +12,7 @@ type TinStandard <: Snow
   date::DateTime
   swe::Array{Float64,1}
   lw::Array{Float64,1}
-  q_sim::Float64
+  q_sim::Array{Float64,1}
   param::Array{Float64,1}
   frac::Array{Float64,1}
   tstep::Float64
@@ -37,7 +37,7 @@ function TinStandard(tstep::Float64, time::DateTime, frac::Array{Float64,1})
   date   = DateTime()
   swe    = zeros(Float64, nzones)
   lw     = zeros(Float64, nzones)
-  q_sim  = 0.0
+  q_sim  = zeros(Float64, nzones)
   param  = zeros(Float64, 5)
 
   TinStandard(prec, tair, date, swe, lw, q_sim, param, frac, tstep, time)
@@ -61,7 +61,7 @@ function TinStandard(tstep::Float64, time::DateTime, param::Array{Float64,1}, fr
   date   = DateTime()
   swe    = zeros(Float64, nzones)
   lw     = zeros(Float64, nzones)
-  q_sim  = 0.0
+  q_sim  = zeros(Float64, nzones)
 
   TinStandard(prec, tair, date, swe, lw, q_sim, param, frac, tstep, time)
 
@@ -75,9 +75,9 @@ Initilize the state variables of the model.
 """
 function init_states(mdata::TinStandard)
 
-  for i in eachindex(mdata.swe)
-    mdata.swe[i] = 0.
-    mdata.lw[i] = 0.
+  for ireg in eachindex(mdata.swe)
+    mdata.swe[ireg] = 0.
+    mdata.lw[ireg] = 0.
   end
 
 end
@@ -116,8 +116,8 @@ Assign parameter values to the TinBasic type.
 """
 function assign_param(mdata::TinStandard, param::Array{Float64,1})
 
-  for i in eachindex(mdata.param)
-    mdata.param[i] = param[i]
+  for ireg in eachindex(mdata.param)
+    mdata.param[ireg] = param[ireg]
   end
 
 end
@@ -182,82 +182,80 @@ Propagate the model one time step and compute simulated snowpack dischage.
 """
 function run_timestep(mdata::TinStandard)
 
-  # Parameters
+    # Parameters
 
-  tth     = mdata.param[1]
-  ddf_min = mdata.param[2]
-  ddf_max = mdata.param[3]
-  whcap   = mdata.param[4]
-  pcorr   = mdata.param[5]
+    tth     = mdata.param[1]
+    ddf_min = mdata.param[2]
+    ddf_max = mdata.param[3]
+    whcap   = mdata.param[4]
+    pcorr   = mdata.param[5]
 
-  ddf = compute_ddf(mdata.date, ddf_min, ddf_max)
+    ddf = compute_ddf(mdata.date, ddf_min, ddf_max)
 
-  mdata.q_sim = 0.0
+    for ireg in eachindex(mdata.swe)
 
-  for i in eachindex(mdata.swe)
+        swe = mdata.swe[ireg]
+        lw = mdata.lw[ireg]
 
-    swe = mdata.swe[i]
-    lw = mdata.lw[i]
+        # Compute solid and liquid precipitation
 
-    # Compute solid and liquid precipitation
+        psolid, pliquid = split_prec(mdata.prec[ireg], mdata.tair[ireg], tth)
 
-    psolid, pliquid = split_prec(mdata.prec[i], mdata.tair[i], tth)
+        # Apply snowfall correction factor
 
-    # Apply snowfall correction factor
+        psolid = pcorr * psolid
 
-    psolid = pcorr * psolid
+        # Compute frozen water in snowpack
 
-    # Compute frozen water in snowpack
+        fw  = swe - lw
 
-    fw  = swe - lw
+        # Constrain fw and lw
 
-    # Constrain fw and lw
+        if fw < 0.0
+            fw = 0.0
+        end
 
-    if fw < 0.
-        fw = 0.
-    end
+        if lw < 0.0
+            lw = 0.0
+        end
 
-    if lw < 0.
-        lw = 0.
-    end
+        # Compute melt rates
 
-    # Compute melt rates
+        melt = compute_melt(mdata.tair[ireg], fw, ddf, tth)
 
-    melt = compute_melt(mdata.tair[i], fw, ddf, tth)
+        # Compute refreezing rates
 
-    # Compute refreezing rates
+        refr = compute_refreeze(mdata.tair[ireg], lw, ddf, tth)
 
-    refr = compute_refreeze(mdata.tair[i], lw, ddf, tth)
+        # Massbalance for frozen water in snowpack
 
-    # Massbalance for frozen water in snowpack
+        dfw = psolid + refr - melt
+        fw  = fw + dfw
 
-    dfw = psolid + refr - melt
-    fw  = fw + dfw
+        # Massbalance for liquid water in snowpack
 
-    # Massbalance for liquid water in snowpack
+        dlw = pliquid + melt - refr
+        lw  = lw + dlw
 
-    dlw = pliquid + melt - refr
-    lw  = lw + dlw
+        lwmax = fw * whcap / (1 - whcap)
 
-    lwmax = fw * whcap / (1 - whcap)
+        q_sim = lw - lwmax
 
-    q_sim = lw - lwmax
+        if q_sim < 0.
+            q_sim = 0.
+        end
 
-    if q_sim < 0.
-        q_sim = 0.
-    end
+        lw = lw - q_sim
 
-    lw = lw - q_sim
+        # Massbalance for snowpack
 
-    # Massbalance for snowpack
+        swe = fw + lw
 
-    swe = fw + lw
+        # Assign final results
 
-    # Assign final results
-
-    mdata.swe[i] = swe
-    mdata.lw[i] = lw
-    mdata.q_sim += mdata.frac[i] * q_sim
+        mdata.swe[ireg] = swe
+        mdata.lw[ireg] = lw
+        mdata.q_sim[ireg] = q_sim
 
     end
 

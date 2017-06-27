@@ -200,7 +200,7 @@ end
 
 function get_input(st_snow::Snow, st_hydro::Hydro, epot, itime)
 
-  st_hydro.prec = st_snow.q_sim
+  st_hydro.prec = sum(st_snow.frac .* st_snow.q_sim)
   st_hydro.epot = epot[itime]
 
 end
